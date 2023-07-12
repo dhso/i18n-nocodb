@@ -195,18 +195,6 @@ watch($$(activeLang), (newLang) => {
               {{ $t('general.copy') }}
             </a-button>
           </div>
-
-          <div class="absolute bottom-4 flex flex-row justify-center w-[95%]">
-            <a
-              v-e="['e:hiring']"
-              class="px-4 py-2 ! rounded shadow"
-              href="https://angel.co/company/nocodb"
-              target="_blank"
-              @click.stop
-            >
-              🚀 {{ $t('labels.weAreHiring') }}! 🚀
-            </a>
-          </div>
         </a-tab-pane>
       </a-tabs>
     </div>

@@ -175,7 +175,7 @@ onMounted(() => {
               <a-checkbox-group
                 v-model:value="table.columns"
                 :options="systemColumnsCheckboxInfo"
-                class="!flex flex-row justify-between w-full"
+                class="flex flex-row justify-between w-full"
               >
                 <template #label="{ value }">
                   <a-tooltip v-if="value === 'id'" placement="top" class="!flex">

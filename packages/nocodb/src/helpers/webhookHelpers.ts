@@ -5,6 +5,8 @@ import Noco from '../Noco';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { Column, FormView, Hook, Model, View } from '../models';
 import type { HookLogType } from 'nocodb-sdk';
+import { set } from 'lodash';
+import DingTalk from 'src/plugins/dingTalk/DingTalk';
 
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
@@ -333,6 +335,45 @@ export async function invokeWebhook(
             prevData,
             newData,
           );
+
+          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+            hookLog = {
+              ...hook,
+              fk_hook_id: hook.id,
+              type: notification.type,
+              payload: JSON.stringify(notification?.payload),
+              response: JSON.stringify({
+                status: res.status,
+                statusText: res.statusText,
+                headers: res.headers,
+                config: {
+                  url: res.config.url,
+                  method: res.config.method,
+                  data: res.config.data,
+                  headers: res.config.headers,
+                  params: res.config.params,
+                },
+              }),
+              triggered_by: user?.email,
+            };
+          }
+        }
+        break;
+      case 'DingTalkCustom':
+        {
+         set(notification, 'payload.body', {
+            msgtype: 'text',
+            text: {
+              content: notification?.payload?.body,
+            }
+          });
+          const req = axiosRequestMake(
+            notification?.payload,
+            user,
+            constructWebHookData(hook, model, view, prevData, newData),
+          );
+          req.params = DingTalk.sign(notification.payload.secret)
+          const res = await require('axios')(req);
 
           if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
             hookLog = {

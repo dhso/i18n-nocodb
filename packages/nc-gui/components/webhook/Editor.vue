@@ -76,6 +76,8 @@ const webhookTestRef = ref()
 
 const slackChannels = ref<Record<string, any>[]>([])
 
+const dingTalkChannels = ref<Record<string, any>[]>([])
+
 const teamsChannels = ref<Record<string, any>[]>([])
 
 const discordChannels = ref<Record<string, any>[]>([])
@@ -104,6 +106,31 @@ const formInput = ref({
       key: 'body',
       label: 'Body',
       placeholder: 'Body',
+      type: 'LongText',
+      required: true,
+    },
+  ],
+  'DingTalk': [
+    {
+      key: 'body',
+      label: 'Body',
+      placeholder: '{{ data.data.table_name}} 发生了变动！',
+      type: 'LongText',
+      required: true,
+    },
+  ],
+  'DingTalkCustom': [
+    {
+      key: 'body',
+      label: 'Body',
+      placeholder: '{{ data.data.table_name}} 发生了变动！',
+      type: 'LongText',
+      required: true,
+    },
+    {
+      key: 'secret',
+      label: 'Secret',
+      placeholder: 'Secret',
       type: 'LongText',
       required: true,
     },
@@ -193,6 +220,8 @@ const notificationList = computed(() => {
     : [
         { type: 'URL' },
         { type: 'Email' },
+        { type: 'DingTalk' },
+        { type: 'DingTalkCustom' },
         { type: 'Slack' },
         { type: 'Microsoft Teams' },
         { type: 'Discord' },
@@ -220,12 +249,15 @@ const validators = computed(() => {
       'notification.payload.method': [fieldRequiredValidator()],
       'notification.payload.path': [fieldRequiredValidator()],
     }),
+    ...(hook.notification.type === 'DingTalkCustom' && {
+      'notification.payload.path': [fieldRequiredValidator()],
+    }),
     ...(hook.notification.type === 'Email' && {
       'notification.payload.to': [fieldRequiredValidator()],
       'notification.payload.subject': [fieldRequiredValidator()],
       'notification.payload.body': [fieldRequiredValidator()],
     }),
-    ...(['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hook.notification.type) && {
+    ...(['Slack', 'Microsoft Teams', 'Discord', 'Mattermost', 'DingTalk'].includes(hook.notification.type) && {
       'notification.payload.channels': [fieldRequiredValidator()],
       'notification.payload.body': [fieldRequiredValidator()],
     }),
@@ -240,7 +272,7 @@ const { validate, validateInfos } = useForm(hook, validators)
 function onNotificationTypeChange(reset = false) {
   if (reset) {
     hook.notification.payload = {} as Record<string, any>
-    if (['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hook.notification.type)) {
+    if (['Slack', 'Microsoft Teams', 'Discord', 'Mattermost', 'DingTalk'].includes(hook.notification.type)) {
       hook.notification.payload.channels = []
       hook.notification.payload.body = ''
     }
@@ -248,6 +280,11 @@ function onNotificationTypeChange(reset = false) {
 
   if (hook.notification.type === 'Slack') {
     slackChannels.value = (apps.value && apps.value.Slack && apps.value.Slack.parsedInput) || []
+  }
+
+  if (hook.notification.type === 'DingTalk') {
+    hook.notification.payload.body = hook.notification.payload.body || '{{ data.data.table_name}} 发生了变动！ '
+    dingTalkChannels.value = (apps.value && apps.value.DingTalk && apps.value.DingTalk.parsedInput) || []
   }
 
   if (hook.notification.type === 'Microsoft Teams') {
@@ -268,6 +305,14 @@ function onNotificationTypeChange(reset = false) {
     hook.notification.payload.headers = hook.notification.payload.headers || [{}]
     hook.notification.payload.method = hook.notification.payload.method || 'POST'
     hook.notification.payload.auth = hook.notification.payload.auth || ''
+  }
+
+  if (hook.notification.type === 'DingTalkCustom') {
+    hook.notification.payload.body = hook.notification.payload.body || '{{ data.data.table_name}} 发生了变动！'
+    hook.notification.payload.parameters = [{}]
+    hook.notification.payload.headers = [{}]
+    hook.notification.payload.method = 'POST'
+    hook.notification.payload.auth = ''
   }
 }
 
@@ -309,6 +354,9 @@ function onEventChange() {
     case 'Slack':
       channels.value = slackChannels.value
       break
+    case 'DingTalk':
+      channels.value = dingTalkChannels.value
+      break
     case 'Microsoft Teams':
       channels.value = teamsChannels.value
       break
@@ -333,6 +381,13 @@ function onEventChange() {
     hook.notification.payload.parameters = hook.notification.payload.parameters || [{}]
     hook.notification.payload.headers = hook.notification.payload.headers || [{}]
     hook.notification.payload.method = hook.notification.payload.method || 'POST'
+  }
+
+  if (hook.notification.type === 'DingTalkCustom') {
+    hook.notification.payload = hook.notification.payload || {}
+    hook.notification.payload.parameters = [{}]
+    hook.notification.payload.headers = [{}]
+    hook.notification.payload.method = 'POST'
   }
 }
 
@@ -553,6 +608,10 @@ onMounted(async () => {
 
                       <MdiSlack v-if="notificationOption.type === 'Slack'" class="mr-2" />
 
+                      <MdiSlack v-if="notificationOption.type === 'DingTalk'" class="mr-2" />
+
+                      <MdiSlack v-if="notificationOption.type === 'DingTalkCustom'" class="mr-2" />
+
                       <MdiMicrosoftTeams v-if="notificationOption.type === 'Microsoft Teams'" class="mr-2" />
 
                       <MdiDiscord v-if="notificationOption.type === 'Discord'" class="mr-2" />
@@ -571,13 +630,14 @@ onMounted(async () => {
             </a-col>
           </a-row>
 
-          <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 0]">
+          <a-row v-if="['URL', 'DingTalkCustom'].includes(hook.notification.type)" class="mb-5" type="flex" :gutter="[16, 0]">
             <a-col :span="6">
               <a-select
                 v-model:value="hook.notification.payload.method"
                 size="large"
                 class="nc-select-hook-url-method"
                 dropdown-class-name="nc-dropdown-hook-notification-url-method"
+                :disabled="['DingTalkCustom'].includes(hook.notification.type)"
               >
                 <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
                   {{ method.title }}
@@ -596,7 +656,7 @@ onMounted(async () => {
               </a-form-item>
             </a-col>
 
-            <a-col :span="24">
+            <a-col :span="24" v-if="['URL'].includes(hook.notification.type)">
               <a-tabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="shadow-sm">
                 <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
                   <LazyMonacoEditor
@@ -636,6 +696,19 @@ onMounted(async () => {
                   :selected-channel-list="hook.notification.payload.channels"
                   :available-channel-list="slackChannels"
                   placeholder="Select Slack channels"
+                />
+              </a-form-item>
+            </a-col>
+          </a-row>
+
+          <a-row v-if="hook.notification.type === 'DingTalk'" type="flex">
+            <a-col :span="24">
+              <a-form-item v-bind="validateInfos['notification.payload.channels']">
+                <LazyWebhookChannelMultiSelect
+                  v-model="hook.notification.payload.channels"
+                  :selected-channel-list="hook.notification.payload.channels"
+                  :available-channel-list="dingTalkChannels"
+                  placeholder="Select DingTalk channels"
                 />
               </a-form-item>
             </a-col>

@@ -9,6 +9,8 @@ export enum XcNotificationType {
   DISCORD = 'Discord',
   TELEGRAM = 'Telegram',
   SLACK = 'Slack',
+  DINGTALK = 'DingTalk',
+  DINGTALKCUSTOM = 'DingTalkCustom',
   WHATSAPP = 'Whatsapp',
   TWILIO = 'Twilio',
 }

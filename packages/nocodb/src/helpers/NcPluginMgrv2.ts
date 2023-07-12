@@ -9,6 +9,7 @@ import OvhCloudPluginConfig from '../plugins/ovhCloud';
 import S3PluginConfig from '../plugins/s3';
 import ScalewayPluginConfig from '../plugins/scaleway';
 import SlackPluginConfig from '../plugins/slack';
+import DingTalkPluginConfig from '../plugins/dingTalk';
 import SMTPPluginConfig from '../plugins/smtp';
 import MailerSendConfig from '../plugins/mailerSend';
 import SpacesPluginConfig from '../plugins/spaces';
@@ -35,6 +36,7 @@ import type {
 
 const defaultPlugins = [
   SlackPluginConfig,
+  DingTalkPluginConfig,
   TeamsPluginConfig,
   DiscordPluginConfig,
   TwilioWhatsappPluginConfig,

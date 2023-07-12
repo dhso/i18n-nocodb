@@ -32,7 +32,9 @@ function setAvailableChannelWithIdxList(availableChannelList: Record<string, any
     for (const channel of rest.modelValue || []) {
       const target = availableChannelWithIdxList.find(
         (availableChannelWithIdx) =>
-          availableChannelWithIdx.webhook_url === channel.webhook_url && availableChannelWithIdx.channel === channel.channel,
+          availableChannelWithIdx.webhook_url === channel.webhook_url &&
+          availableChannelWithIdx.channel === channel.channel &&
+          availableChannelWithIdx.secret === channel.secret,
       )
       if (target) {
         localChannelValues.push(target.idx)
@@ -58,7 +60,7 @@ watch(
       const target = availableChannelWithIdxList.find((availableChannel) => availableChannel.idx === channelIdx)
       if (target) {
         // push without target.idx
-        res.push({ webhook_url: target.webhook_url, channel: target.channel })
+        res.push({ webhook_url: target.webhook_url, channel: target.channel, secret: target.secret })
       }
     }
     vModel.value = res
