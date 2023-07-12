@@ -1,12 +1,12 @@
 import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
+import { set } from 'lodash';
 import { Filter, HookLog } from '../models';
 import Noco from '../Noco';
+import DingTalk from '../plugins/dingTalk/DingTalk';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { Column, FormView, Hook, Model, View } from '../models';
 import type { HookLogType } from 'nocodb-sdk';
-import { set } from 'lodash';
-import DingTalk from 'src/plugins/dingTalk/DingTalk';
 
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
@@ -361,11 +361,11 @@ export async function invokeWebhook(
         break;
       case 'DingTalkCustom':
         {
-         set(notification, 'payload.body', {
+          set(notification, 'payload.body', {
             msgtype: 'text',
             text: {
               content: notification?.payload?.body,
-            }
+            },
           });
           const req = axiosRequestMake(
             notification?.payload,

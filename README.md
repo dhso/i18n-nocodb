@@ -304,3 +304,25 @@ Thank you for your contributions! We appreciate all the contributions from the c
 <a href="https://github.com/nocodb/nocodb/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=nocodb/nocodb" />
 </a>
+
+# Build Docker
+```
+```
+
+# Run Docker
+```
+docker run -d \
+--name nocodb \
+-e NC_AUTH_JWT_SECRET="asdfghjkl" \
+-e NC_DISABLE_ERR_REPORT=true \
+-e NC_ADMIN_EMAIL="**@***.com" \
+-e NC_ADMIN_PASSWORD=*** \
+-e NC_DISABLE_AUDIT=false \
+-e NC_DISABLE_TELE=true \
+-e NC_AUTOMATION_LOG_LEVEL=ALL \
+-v nocodb_data:/usr/app/data/ \
+-p 9527:8080 \
+--restart unless-stopped \
+--log-opt max-size=1m \
+nocodb-local:latest
+```
