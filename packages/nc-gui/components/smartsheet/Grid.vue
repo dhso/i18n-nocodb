@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+// @ts-nocheck
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { fetchTranslation } from '../useGptClient'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -210,6 +212,7 @@ const {
   handleCellClick,
   clearSelectedRange,
   copyValue,
+  translateValue,
   isCellActive,
   resetSelectedRange,
   makeActive,
@@ -589,6 +592,103 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
   if (!skipUpdate) {
     // update/save cell value
+    await updateOrSaveRow(rowObj, columnObj.title)
+  }
+}
+
+/**
+ * @description Translate cell value to fill autocomplete field
+ * @param ctx
+ * @param skipUpdate
+ */
+async function translateCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
+  if (
+    !ctx ||
+    !hasEditPermission ||
+    (fields.value[ctx.col].uidt !== UITypes.LinkToAnotherRecord && isVirtualCol(fields.value[ctx.col]))
+  )
+    return
+
+  const rowObj = data.value[ctx.row]
+  const columnObj = fields.value[ctx.col]
+  const sourceText = rowObj.row.CN
+  // 获取翻译源字段：默认为当前行的【CN】字段
+  const translatedValue = sourceText
+
+  if (isVirtualCol(columnObj)) {
+    addUndo({
+      undo: {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+          if (paginationData.value.pageSize === pg.pageSize) {
+            if (paginationData.value.page !== pg.page) {
+              await changePage(pg.page!)
+            }
+            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+            const rowObj = data.value[ctx.row]
+            const columnObj = fields.value[ctx.col]
+            if (
+              columnObj.title &&
+              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+              columnObj.id === col.id
+            ) {
+              rowObj.row[columnObj.title] = row.row[columnObj.title]
+              await rowRefs[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
+              await rowRefs[ctx.row]!.syncLTARRefs(rowObj.row)
+              activeCell.col = ctx.col
+              activeCell.row = ctx.row
+              scrollToCell?.()
+            } else {
+              throw new Error('Record could not be found')
+            }
+          } else {
+            throw new Error('Page size changed')
+          }
+        },
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
+      },
+      redo: {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+          if (paginationData.value.pageSize === pg.pageSize) {
+            if (paginationData.value.page !== pg.page) {
+              await changePage(pg.page!)
+            }
+            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+            const rowObj = data.value[ctx.row]
+            const columnObj = fields.value[ctx.col]
+            if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
+              await rowRefs[ctx.row]!.clearLTARCell(columnObj)
+              activeCell.col = ctx.col
+              activeCell.row = ctx.row
+              scrollToCell?.()
+            } else {
+              throw new Error('Record could not be found')
+            }
+          } else {
+            throw new Error('Page size changed')
+          }
+        },
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
+      },
+      scope: defineViewScope({ view: view.value }),
+    })
+    await rowRefs[ctx.row]!.clearLTARCell(columnObj)
+    return
+  }
+
+  // handle Checkbox and rating fields in a special way
+  switch (columnObj.uidt) {
+    case UITypes.Checkbox:
+      rowObj.row[columnObj.title] = false
+      break
+    case UITypes.Rating:
+      rowObj.row[columnObj.title] = 0
+      break
+    default:
+      rowObj.row[columnObj.title] = translatedValue
+      break
+  }
+
+  if (!skipUpdate) {
     await updateOrSaveRow(rowObj, columnObj.title)
   }
 }
@@ -1222,6 +1322,7 @@ useEventListener(document, 'mouseup', () => {
           />
         </div>
 
+        <!-- Context Menu: 单元格式右键点击 -->
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item
@@ -1263,7 +1364,7 @@ useEventListener(document, 'mouseup', () => {
               </div>
             </a-menu-item>
 
-            <!--            Clear cell -->
+            <!-- Clear cell -->
             <a-menu-item
               v-if="
                 contextMenuTarget &&
@@ -1276,7 +1377,7 @@ useEventListener(document, 'mouseup', () => {
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
-            <!--            Clear cell -->
+            <!-- Clear cell -->
             <a-menu-item v-else-if="contextMenuTarget" @click="clearSelectedRangeOfCells()">
               <div v-e="['a:row:clear-range']" class="nc-project-menu-item">Clear Cells</div>
             </a-menu-item>
@@ -1293,6 +1394,20 @@ useEventListener(document, 'mouseup', () => {
                 <!-- Copy -->
                 {{ $t('general.copy') }}
               </div>
+            </a-menu-item>
+
+            <!-- Translate Auto with ChatGpt -->
+            <a-menu-item
+              v-if="
+                contextMenuTarget &&
+                selectedRange.isSingleCell() &&
+                (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
+                  !isVirtualCol(fields[contextMenuTarget.col]))
+              "
+              data-testid="context-menu-item-translate"
+              @click="translateCell(contextMenuTarget)"
+            >
+              <div v-e="['a:row:translate']" class="nc-project-menu-item">{{ $t('Translate') }}</div>
             </a-menu-item>
           </a-menu>
         </template>
