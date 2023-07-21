@@ -47,6 +47,98 @@
     }
   ],
   "paths": {
+    "/auth/dingtalk/genTokenByCode": {
+      "post": {
+        "summary": "SSO Dingtalk",
+        "operationId": "auth-dingtalk-genTokenByCode",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "The signed JWT token for information exchange",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "Invalid email": {
+                    "value": {
+                      "msg": "Invalid email"
+                    }
+                  },
+                  "Invalid invite url": {
+                    "value": {
+                      "msg": "Invalid invite url"
+                    }
+                  },
+                  "Expired invite url": {
+                    "value": {
+                      "msg": "Expired invite url, Please contact super admin to get a new invite url"
+                    }
+                  },
+                  "User already exist": {
+                    "value": {
+                      "msg": "User already exist"
+                    }
+                  },
+                  "Invite only signup": {
+                    "value": {
+                      "msg": "Not allowed to signup, contact super admin"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Auth"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SsoDingtalkReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "authCode": "xxxxx"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new user with provided email and password and first user is marked as super admin. "
+      }
+    },
     "/api/v1/auth/user/signup": {
       "post": {
         "summary": "Signup",
@@ -19097,6 +19189,27 @@
         "required": ["email", "password"],
         "x-stoplight": {
           "id": "6ia1chyii9w48"
+        }
+      },
+      "SsoDingtalkReq": {
+        "description": "Model for SSO Dingtalk Request",
+        "examples": [
+          {
+            "authCode": "xxx"
+          }
+        ],
+        "title": "SSO Dingtalk Request Model",
+        "type": "object",
+        "properties": {
+          "authCode": {
+            "description": "authCode",
+            "example": "xxxxx",
+            "type": "string"
+          }
+        },
+        "required": ["authCode"],
+        "x-stoplight": {
+          "id": "6ia1chyii9w42"
         }
       },
       "Sort": {

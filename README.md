@@ -320,9 +320,38 @@ docker run -d \
 -e NC_DISABLE_AUDIT=false \
 -e NC_DISABLE_TELE=true \
 -e NC_AUTOMATION_LOG_LEVEL=ALL \
+-e NC_DT_AGENT_ID="xxx" \
+-e NC_DT_APP_KEY="xxx" \
+-e NC_DT_APP_SECRET="xxxx" \
+-e NC_DT_OSS_URL="xxx" \
 -v nocodb_data:/usr/app/data/ \
 -p 9527:8080 \
 --restart unless-stopped \
 --log-opt max-size=1m \
 nocodb-local:latest
+```
+
+# Develop
+## Build SDK
+```
+# build nocodb-sdk
+cd nocodb-sdk
+npm install
+npm run build
+```
+
+## Build Backend
+```
+# build backend - runs on port 8080
+cd ../nocodb
+npm install
+npm run watch:run
+```
+
+## Build Frontend
+```
+# build frontend - runs on port 3000
+cd ../nc-gui
+npm install
+npm run dev 
 ```

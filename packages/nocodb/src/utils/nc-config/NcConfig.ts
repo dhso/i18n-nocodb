@@ -44,6 +44,12 @@ export class NcConfig {
   env: string;
   workingEnv: string;
   projectType: string;
+  dingtalk?: {
+    agentId: string;
+    appKey: string;
+    appSecret: string;
+    ossUrl: string;
+  };
 
   private constructor() {}
 
@@ -59,9 +65,23 @@ export class NcConfig {
     worker?: boolean;
     dashboardPath?: string;
     publicUrl?: string;
+    dingtalk?: {
+      agentId: string;
+      appKey: string;
+      appSecret: string;
+      ossUrl: string;
+    };
   }): Promise<NcConfig> {
-    const { meta, secret, port, worker, tryMode, publicUrl, dashboardPath } =
-      param;
+    const {
+      meta,
+      secret,
+      port,
+      worker,
+      tryMode,
+      publicUrl,
+      dashboardPath,
+      dingtalk,
+    } = param;
 
     const ncConfig = new NcConfig();
 
@@ -125,6 +145,18 @@ export class NcConfig {
       ncConfig.dashboardPath = '/dashboard';
     }
 
+    if (dingtalk?.appKey) {
+      ncConfig.dingtalk = dingtalk;
+    } else {
+      ncConfig.dingtalk = {
+        agentId: '2662676623',
+        appKey: 'dingx1amn58fc4tdnrjg',
+        appSecret:
+          'q0QFQoHXP_MaZ8mvbKS7HPjVHei8SQmpLjSi2_WGxj2czYOyDYtwOtESPPXnZ6-w',
+        ossUrl: 'https://dingbot.minws.com/#/sso/dingtalk',
+      };
+    }
+
     try {
       // make sure meta db exists
       await ncConfig.metaDbCreateIfNotExist();
@@ -148,6 +180,12 @@ export class NcConfig {
       worker: !!process.env.NC_WORKER,
       dashboardPath: process.env.NC_DASHBOARD_PATH,
       publicUrl: process.env.NC_PUBLIC_URL,
+      dingtalk: {
+        agentId: process.env.NC_DT_AGENT_ID,
+        appKey: process.env.NC_DT_APP_KEY,
+        appSecret: process.env.NC_DT_APP_SECRET,
+        ossUrl: process.env.NC_DT_OSS_URL,
+      },
     });
   }
 

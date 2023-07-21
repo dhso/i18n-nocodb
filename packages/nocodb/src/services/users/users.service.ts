@@ -11,6 +11,9 @@ import { isEmail } from 'validator';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
+import DingtalkSdk from '@alicloud/dingtalk';
+import * as $OpenApi from '@alicloud/openapi-client';
+import * as $Util from '@alicloud/tea-util';
 import { NC_APP_SETTINGS } from '../../constants';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
@@ -64,6 +67,7 @@ export class UsersService {
     salt,
     password,
     email_verification_token,
+    from_dingtalk,
   }: {
     firstname;
     lastname;
@@ -71,6 +75,7 @@ export class UsersService {
     salt: any;
     password;
     email_verification_token;
+    from_dingtalk?: boolean;
   }) {
     let roles: string = OrgUserRoles.CREATOR;
 
@@ -82,7 +87,7 @@ export class UsersService {
         evt_type: 'project:invite',
         count: 1,
       });
-    } else {
+    } else if (!from_dingtalk) {
       let settings: { invite_only_signup?: boolean } = {};
       try {
         settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
@@ -106,6 +111,7 @@ export class UsersService {
       email_verification_token,
       roles,
       token_version,
+      email_verified: from_dingtalk,
     });
   }
 
@@ -509,6 +515,76 @@ export class UsersService {
       return { msg: 'Signed out successfully' };
     } catch (e) {
       NcError.badRequest(e.message);
+    }
+  }
+
+  async dingtalkLogin({
+    authCode,
+    refreshToken,
+  }: {
+    authCode: string;
+    refreshToken?: string;
+  }): Promise<any> {
+    const config = new $OpenApi.Config({});
+    config.protocol = 'https';
+    config.regionId = 'central';
+    const getUserTokenRequestClient = new DingtalkSdk.oauth2_1_0.default(
+      config,
+    );
+    const getUserTokenRequest = new DingtalkSdk.oauth2_1_0.GetUserTokenRequest({
+      clientId: Noco.getConfig()?.dingtalk?.appKey,
+      clientSecret: Noco.getConfig()?.dingtalk?.appSecret,
+      code: authCode,
+      grantType: 'authorization_code',
+      refreshToken,
+    });
+    const getUserHeadersClient = new DingtalkSdk.contact_1_0.default(config);
+    const getUserHeaders = new DingtalkSdk.contact_1_0.GetUserHeaders();
+    try {
+      const userToken = await getUserTokenRequestClient.getUserToken(
+        getUserTokenRequest,
+      );
+      console.log('userToken======', userToken.body);
+      getUserHeaders.xAcsDingtalkAccessToken = userToken.body.accessToken;
+      const userHeaders = await getUserHeadersClient.getUserWithOptions(
+        'me',
+        getUserHeaders,
+        new $Util.RuntimeOptions({}),
+      );
+      console.log('userHeaders======', userHeaders.body);
+      const { email, mobile, unionId, openId, nick } = userHeaders.body;
+      const _email = email || `${mobile}@mobile.loc`;
+      if (!isEmail(_email)) {
+        NcError.badRequest(`Invalid email`);
+      }
+      const _user = {
+        ...userHeaders.body,
+        email: _email.toLowerCase(),
+        firstname: nick,
+        lastname: nick,
+        id: unionId || openId,
+        email_verified: true,
+      };
+      let user = await User.getByEmail(_user.email);
+      console.log('user====', user);
+      if (!user) {
+        const salt = await promisify(bcrypt.genSalt)(10);
+        const password = await promisify(bcrypt.hash)('PatSnap1234', salt);
+        const email_verification_token = uuidv4();
+        await this.registerNewUserIfAllowed({
+          ..._user,
+          salt,
+          password,
+          email_verification_token,
+          from_dingtalk: true,
+        });
+      }
+      user = await User.getByEmail(_user.email);
+      return {
+        token: genJwt(_user, Noco.getConfig()),
+      };
+    } catch (err) {
+      NcError.badRequest(err.message);
     }
   }
 }

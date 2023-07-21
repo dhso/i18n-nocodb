@@ -25,6 +25,12 @@ export default class User implements UserType {
   email_verified: boolean;
   roles?: string;
   token_version?: string;
+  stateCode?: any;
+  mobile?: any;
+  avatarUrl?: any;
+  nick?: any;
+  openId?: any;
+  unionId?: any;
 
   constructor(data: User) {
     Object.assign(this, data);

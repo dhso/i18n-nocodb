@@ -2163,6 +2163,17 @@ export interface SignUpReqType {
 }
 
 /**
+ * Model for SSO Dingtalk Request
+ */
+export interface SsoDingtalkReqType {
+  /**
+   * authCode
+   * @example xxxxx
+   */
+  authCode: string;
+}
+
+/**
  * Model for Sort
  */
 export interface SortType {
@@ -2681,6 +2692,50 @@ export class Api<
   SecurityDataType extends unknown
 > extends HttpClient<SecurityDataType> {
   auth = {
+    /**
+ * @description Create a new user with provided email and password and first user is marked as super admin. 
+ * 
+ * @tags Auth
+ * @name DingtalkGenTokenByCode
+ * @summary SSO Dingtalk
+ * @request POST:/auth/dingtalk/genTokenByCode
+ * @response `200` `{
+  \**
+   * The signed JWT token for information exchange
+   * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI
+   *\
+  token?: string,
+
+}` OK
+ * @response `400` `{
+  msg?: string,
+
+}` Bad Request
+ */
+    dingtalkGenTokenByCode: (
+      data: SsoDingtalkReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /**
+           * The signed JWT token for information exchange
+           * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI
+           */
+          token?: string;
+        },
+        {
+          msg?: string;
+        }
+      >({
+        path: `/auth/dingtalk/genTokenByCode`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
     /**
  * @description Create a new user with provided email and password and first user is marked as super admin. 
  * 

@@ -13,6 +13,12 @@ export function genJwt(user: User, config: NcConfig) {
       id: user.id,
       roles: user.roles,
       token_version: user.token_version,
+      stateCode: user.stateCode,
+      mobile: user.mobile,
+      avatarUrl: user.avatarUrl,
+      nick: user.nick,
+      openId: user.openId,
+      unionId: user.unionId,
     },
     config.auth.jwt.secret,
     // todo: better typing

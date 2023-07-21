@@ -11,7 +11,7 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
     <div
       class="min-h-[calc(100vh_-_var(--header-height))] bg-primary bg-opacity-5 flex flex-wrap justify-between xl:flex-nowrap gap-6 py-6 px-4 md:(px-12 pt-65px)"
     >
-      <div class="min-w-2/4 xl:max-w-2/4 w-full mx-auto">
+      <div class="w-full mx-auto">
         <NuxtPage :transition="false" />
       </div>
     </div>

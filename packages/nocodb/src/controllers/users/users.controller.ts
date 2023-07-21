@@ -102,6 +102,20 @@ export class UsersController {
     // google strategy will take care the request
   }
 
+  @Post(`/auth/dingtalk/genTokenByCode`)
+  @HttpCode(200)
+  // @UseGuards(AuthGuard('local'))
+  async dingtalkLogin(@Request() req, @Response() res) {
+    await this.setRefreshToken({ req, res });
+    res.json(await this.usersService.dingtalkLogin(req.body));
+  }
+
+  @Get('/auth/dingtalk')
+  // @UseGuards(AuthGuard('local'))
+  dingtalkAuthenticate() {
+    // local strategy will take care the request
+  }
+
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
   @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
   async me(@Request() req) {
