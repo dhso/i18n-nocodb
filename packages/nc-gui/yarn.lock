@@ -2,101 +2,6 @@
 # yarn lockfile v1
 
 
-"@alicloud/credentials@^2":
-  "integrity" "sha512-jG+msY77dHmAF3x+8VTy7fEgORyXLHmDci8t92HeipBdCHsPptDegA++GEwKgR7f6G4wvafYt+aqMZ1iligdrQ=="
-  "resolved" "https://registry.npmjs.org/@alicloud/credentials/-/credentials-2.2.6.tgz"
-  "version" "2.2.6"
-  dependencies:
-    "@alicloud/tea-typescript" "^1.5.3"
-    "httpx" "^2.2.0"
-    "ini" "^1.3.5"
-    "kitx" "^2.0.0"
-
-"@alicloud/dingtalk@^2.0.25":
-  "integrity" "sha512-nz7dpTttYhFMbBl3VVod+gGBQ3aGcWpLYR9TVFXgDp657mlH2a7V7VA1/Ba0JNMz6mI2Z8L+Wv3SWJMEYyrS+Q=="
-  "resolved" "https://registry.npmjs.org/@alicloud/dingtalk/-/dingtalk-2.0.25.tgz"
-  "version" "2.0.25"
-  dependencies:
-    "@alicloud/endpoint-util" "^0.0.1"
-    "@alicloud/gateway-dingtalk" "^1.0.2"
-    "@alicloud/gateway-spi" "^0.0.8"
-    "@alicloud/openapi-client" "^0.4.4"
-    "@alicloud/openapi-util" "^0.3.1"
-    "@alicloud/tea-typescript" "^1.7.1"
-    "@alicloud/tea-util" "^1.4.7"
-
-"@alicloud/endpoint-util@^0.0.1":
-  "integrity" "sha512-+pH7/KEXup84cHzIL6UJAaPqETvln4yXlD9JzlrqioyCSaWxbug5FUobsiI6fuUOpw5WwoB3fWAtGbFnJ1K3Yg=="
-  "resolved" "https://registry.npmjs.org/@alicloud/endpoint-util/-/endpoint-util-0.0.1.tgz"
-  "version" "0.0.1"
-  dependencies:
-    "@alicloud/tea-typescript" "^1.5.1"
-    "kitx" "^2.0.0"
-
-"@alicloud/gateway-dingtalk@^1.0.2":
-  "integrity" "sha512-T8ml6kth/nCRthrtHIYnCYv7+q/41SnJaR8c99491azNSPcmMmgxis5ujYIl5irKm0cvoOCCjI9EWUFb2Tx7JA=="
-  "resolved" "https://registry.npmjs.org/@alicloud/gateway-dingtalk/-/gateway-dingtalk-1.0.2.tgz"
-  "version" "1.0.2"
-  dependencies:
-    "@alicloud/gateway-spi" "^0.0.8"
-    "@alicloud/tea-typescript" "^1.7.1"
-    "@alicloud/tea-util" "^1.4.5"
-
-"@alicloud/gateway-spi@^0.0.8":
-  "integrity" "sha512-KM7fu5asjxZPmrz9sJGHJeSU+cNQNOxW+SFmgmAIrITui5hXL2LB+KNRuzWmlwPjnuA2X3/keq9h6++S9jcV5g=="
-  "resolved" "https://registry.npmjs.org/@alicloud/gateway-spi/-/gateway-spi-0.0.8.tgz"
-  "version" "0.0.8"
-  dependencies:
-    "@alicloud/credentials" "^2"
-    "@alicloud/tea-typescript" "^1.7.1"
-
-"@alicloud/openapi-client@^0.4.4":
-  "integrity" "sha512-cyhUQOJehLRslHy2l+lsginiyXdzfV7yF7b9EJcxzGG7zHAEX0XF3OJvfo13n7WgiqCzt9suQBatJz7b5F+14A=="
-  "resolved" "https://registry.npmjs.org/@alicloud/openapi-client/-/openapi-client-0.4.6.tgz"
-  "version" "0.4.6"
-  dependencies:
-    "@alicloud/credentials" "^2"
-    "@alicloud/gateway-spi" "^0.0.8"
-    "@alicloud/openapi-util" "^0.3.1"
-    "@alicloud/tea-typescript" "^1.7.1"
-    "@alicloud/tea-util" "^1.4.5"
-    "@alicloud/tea-xml" "0.0.2"
-
-"@alicloud/openapi-util@^0.3.1":
-  "integrity" "sha512-6mGT+hs+SXismZi/CEkjPhhbn2U3qTT/Qv/RXAYFA1DC3Jk4/YaX3N7RtpgdzOhdD7uI8XtNkaULKHZY3BrtxQ=="
-  "resolved" "https://registry.npmjs.org/@alicloud/openapi-util/-/openapi-util-0.3.1.tgz"
-  "version" "0.3.1"
-  dependencies:
-    "@alicloud/tea-typescript" "^1.7.1"
-    "@alicloud/tea-util" "^1.3.0"
-    "kitx" "^2.1.0"
-    "sm3" "^1.0.3"
-
-"@alicloud/tea-typescript@^1", "@alicloud/tea-typescript@^1.5.1", "@alicloud/tea-typescript@^1.5.3", "@alicloud/tea-typescript@^1.7.1":
-  "integrity" "sha512-CWXWaquauJf0sW30mgJRVu9aaXyBth5uMBCUc+5vKTK1zlgf3hIqRUjJZbjlwHwQ5y9anwcu18r48nOZb7l2QQ=="
-  "resolved" "https://registry.npmjs.org/@alicloud/tea-typescript/-/tea-typescript-1.8.0.tgz"
-  "version" "1.8.0"
-  dependencies:
-    "@types/node" "^12.0.2"
-    "httpx" "^2.2.6"
-
-"@alicloud/tea-util@^1.3.0", "@alicloud/tea-util@^1.4.5", "@alicloud/tea-util@^1.4.7":
-  "integrity" "sha512-Lrpfk9kxihHsit3oMoeIMjk783AxjOvzMhLAbZcIzazKiVg3Zk/209XDe9r1lXqxII59j3V4rhC9X14y6WGYyg=="
-  "resolved" "https://registry.npmjs.org/@alicloud/tea-util/-/tea-util-1.4.7.tgz"
-  "version" "1.4.7"
-  dependencies:
-    "@alicloud/tea-typescript" "^1.5.1"
-    "kitx" "^2.0.0"
-
-"@alicloud/tea-xml@0.0.2":
-  "integrity" "sha512-Xs7v5y7YSNSDDYmiDWAC0/013VWPjS3dQU4KezSLva9VGiTVPaL3S7Nk4NrTmAYCG6MKcrRj/nGEDIWL5KRoPg=="
-  "resolved" "https://registry.npmjs.org/@alicloud/tea-xml/-/tea-xml-0.0.2.tgz"
-  "version" "0.0.2"
-  dependencies:
-    "@alicloud/tea-typescript" "^1"
-    "@types/xml2js" "^0.4.5"
-    "xml2js" "^0.4.22"
-
 "@ampproject/remapping@^2.2.0":
   "integrity" "sha512-qRmjj8nj9qmLTQXXmaR1cck3UXSRMPrbsLJAasZpF+t3riI71BXed5ebIOYwQntykeZuhjsdweEc9BxH5Jc26w=="
   "resolved" "https://registry.npmjs.org/@ampproject/remapping/-/remapping-2.2.0.tgz"
@@ -1376,16 +1281,6 @@
   "resolved" "https://registry.npmjs.org/@types/node/-/node-10.17.60.tgz"
   "version" "10.17.60"
 
-"@types/node@^12.0.2":
-  "integrity" "sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ=="
-  "resolved" "https://registry.npmjs.org/@types/node/-/node-12.20.55.tgz"
-  "version" "12.20.55"
-
-"@types/node@^14":
-  "integrity" "sha512-soGmOpVBUq+gaBMwom1M+krC/NNbWlosh4AtGA03SyWNDiqSKtwp7OulO1M6+mg8YkHMvJ/y0AkCeO8d1hNb7A=="
-  "resolved" "https://registry.npmjs.org/@types/node/-/node-14.18.53.tgz"
-  "version" "14.18.53"
-
 "@types/node@^8.0.0":
   "integrity" "sha512-tktOkFUA4kXx2hhhrB8bIFb5TbwzS4uOhKEmwiD+NoiL0qtP2OQ9mFldbgD4dV1djrlBYP6eBuQZiWjuHUpqFw=="
   "resolved" "https://registry.npmjs.org/@types/node/-/node-8.10.66.tgz"
@@ -1451,13 +1346,6 @@
   "integrity" "sha512-w7hEHXnPMEZ+4nGKl/KDRVpxkwYxYExuHOYXyzIzCDzEZ9ZCGMAewulr9IqJu2LR4N37fcnb1XVeuZ09qgOxhA=="
   "resolved" "https://registry.npmjs.org/@types/web-bluetooth/-/web-bluetooth-0.0.15.tgz"
   "version" "0.0.15"
-
-"@types/xml2js@^0.4.5":
-  "integrity" "sha512-JdigeAKmCyoJUiQljjr7tQG3if9NkqGUgwEUqBvV0N7LM4HyQk7UXCnusRa1lnvXAEYJ8mw8GtZWioagNztOwA=="
-  "resolved" "https://registry.npmjs.org/@types/xml2js/-/xml2js-0.4.11.tgz"
-  "version" "0.4.11"
-  dependencies:
-    "@types/node" "*"
 
 "@typescript-eslint/eslint-plugin@^5.32.0":
   "integrity" "sha512-jHvZNSW2WZ31OPJ3enhLrEKvAZNyAFWZ6rx9tUwaessTc4sx9KmgMNhVcqVAl1ETnT5rU5fpXTLmY9YvC1DCNg=="
@@ -5040,14 +4928,6 @@
     "har-validator" "^5.0.0"
     "stringify-object" "^3.3.0"
 
-"httpx@^2.2.0", "httpx@^2.2.6":
-  "integrity" "sha512-Wjh2JOAah0pdczfqL8NC5378G7jMt0Zcpn8U+yyxAiejjlagzSTQgJHuVvka2VNPQlKfoGehYRc79WKq9E4gDw=="
-  "resolved" "https://registry.npmjs.org/httpx/-/httpx-2.2.7.tgz"
-  "version" "2.2.7"
-  dependencies:
-    "@types/node" "^14"
-    "debug" "^4.1.1"
-
 "human-signals@^2.1.0":
   "integrity" "sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw=="
   "resolved" "https://registry.npmjs.org/human-signals/-/human-signals-2.1.0.tgz"
@@ -5626,13 +5506,6 @@
   "integrity" "sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A=="
   "resolved" "https://registry.npmjs.org/jwt-decode/-/jwt-decode-3.1.2.tgz"
   "version" "3.1.2"
-
-"kitx@^2.0.0", "kitx@^2.1.0":
-  "integrity" "sha512-C/5v9MtIX7aHGOjwn5BmrrbNkJSf7i0R5mRzmh13GSAdRqQ7bYQo/Su2pTYNylFicqKNTVX3HML9k1u8k51+pQ=="
-  "resolved" "https://registry.npmjs.org/kitx/-/kitx-2.1.0.tgz"
-  "version" "2.1.0"
-  dependencies:
-    "@types/node" "^12.0.2"
 
 "klona@^2.0.5":
   "integrity" "sha512-pJiBpiXMbt7dkzXe8Ghj/u4FfXOOa98fPW+bihOJ4SjnoijweJrNThJfd3ifXpXhREjpoF2mZVH1GfS9LV3kHQ=="
@@ -6358,7 +6231,7 @@
     "unimport" "^0.7.0"
     "unstorage" "^0.6.0"
 
-"nocodb-sdk@file:../nocodb-sdk":
+"nocodb-sdk@0.109.4":
   "resolved" "file:../nocodb-sdk"
   "version" "0.109.4"
   dependencies:
@@ -7761,7 +7634,7 @@
     "immutable" "^4.0.0"
     "source-map-js" ">=0.6.2 <2.0.0"
 
-"sax@^1.2.4", "sax@>=0.6.0":
+"sax@^1.2.4":
   "integrity" "sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw=="
   "resolved" "https://registry.npmjs.org/sax/-/sax-1.2.4.tgz"
   "version" "1.2.4"
@@ -7996,11 +7869,6 @@
   "integrity" "sha512-3dOsAHXXUkQTpOYcoAxLIorMTp4gIQr5IW3iVb7A7lFIp0VHhnynm9izx6TssdrIcVIESAlVjtnO2K8bg+Coew=="
   "resolved" "https://registry.npmjs.org/slash/-/slash-4.0.0.tgz"
   "version" "4.0.0"
-
-"sm3@^1.0.3":
-  "integrity" "sha512-KyFkIfr8QBlFG3uc3NaljaXdYcsbRy1KrSfc4tsQV8jW68jAktGeOcifu530Vx/5LC+PULHT0Rv8LiI8Gw+c1g=="
-  "resolved" "https://registry.npmjs.org/sm3/-/sm3-1.0.3.tgz"
-  "version" "1.0.3"
 
 "socket.io-client@^4.5.1":
   "integrity" "sha512-e6nLVgiRYatS+AHXnOnGi4ocOpubvOUCGhyWw8v+/FxW8saHkinG6Dfhi9TU0Kt/8mwJIAASxvw6eujQmjdZVA=="
@@ -9566,19 +9434,6 @@
   "integrity" "sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw=="
   "resolved" "https://registry.npmjs.org/xml-name-validator/-/xml-name-validator-4.0.0.tgz"
   "version" "4.0.0"
-
-"xml2js@^0.4.22":
-  "integrity" "sha512-ySPiMjM0+pLDftHgXY4By0uswI3SPKLDw/i3UXbnO8M/p28zqexCUoPmQFrYD+/1BzhGJSs2i1ERWKJAtiLrug=="
-  "resolved" "https://registry.npmjs.org/xml2js/-/xml2js-0.4.23.tgz"
-  "version" "0.4.23"
-  dependencies:
-    "sax" ">=0.6.0"
-    "xmlbuilder" "~11.0.0"
-
-"xmlbuilder@~11.0.0":
-  "integrity" "sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA=="
-  "resolved" "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-11.0.1.tgz"
-  "version" "11.0.1"
 
 "xmlchars@^2.2.0":
   "integrity" "sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw=="

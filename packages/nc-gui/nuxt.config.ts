@@ -45,6 +45,12 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       ncBackendUrl: '',
+      DINGTALK_CONF: {
+        NC_DT_AGENT_ID: process.env.NUXT_NC_DT_AGENT_ID,
+        NC_DT_APP_KEY: process.env.NUXT_NC_DT_APP_KEY,
+        NC_DT_APP_SECRET: process.env.NUXT_NC_DT_APP_SECRET,
+        NC_DT_OAUTH_URL: process.env.NUXT_NC_DT_OAUTH_URL,
+      },
     },
   },
 

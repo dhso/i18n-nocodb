@@ -323,7 +323,7 @@ docker run -d \
 -e NC_DT_AGENT_ID="xxx" \
 -e NC_DT_APP_KEY="xxx" \
 -e NC_DT_APP_SECRET="xxxx" \
--e NC_DT_OSS_URL="xxx" \
+-e NC_DT_OAUTH_URL="xxx" \
 -v nocodb_data:/usr/app/data/ \
 -p 9527:8080 \
 --restart unless-stopped \

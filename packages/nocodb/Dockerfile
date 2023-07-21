@@ -30,6 +30,7 @@ RUN apk add --no-cache python3 make g++
 COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
 #COPY ./docker/start.sh /usr/src/appEntry/start.sh
+COPY ./docker/replace-env.sh /usr/src/appEntry/replace-env.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 COPY src/public/ ./docker/public/
 
@@ -40,6 +41,7 @@ RUN npm ci --omit=dev --quiet \
     && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && tar -czf ../appEntry/app.tar.gz ./* \
+    && chmod +x /usr/src/appEntry/replace-env.sh \
     && chmod +x /usr/src/appEntry/start.sh
 
 ##########

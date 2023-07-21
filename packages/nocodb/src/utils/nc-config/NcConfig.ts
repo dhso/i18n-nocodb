@@ -184,7 +184,7 @@ export class NcConfig {
         agentId: process.env.NC_DT_AGENT_ID,
         appKey: process.env.NC_DT_APP_KEY,
         appSecret: process.env.NC_DT_APP_SECRET,
-        ossUrl: process.env.NC_DT_OSS_URL,
+        ossUrl: process.env.NC_DT_OAUTH_URL,
       },
     });
   }

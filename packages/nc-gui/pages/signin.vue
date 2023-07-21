@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
 import {
-  DINGTALK_CONF,
   definePageMeta,
   iconMap,
   navigateTo,
@@ -84,8 +83,11 @@ function resetError() {
   if (error.value) error.value = null
 }
 
+const config = useRuntimeConfig()
+const DINGTALK_CONF = config.public.DINGTALK_CONF || {}
+
 onMounted(() => {
-  DINGTALK_CONF.APP_KEY &&
+  DINGTALK_CONF?.NC_DT_APP_KEY &&
     window.DTFrameLogin(
       {
         id: 'dingtalk_sso',
@@ -93,8 +95,8 @@ onMounted(() => {
         height: 300,
       },
       {
-        redirect_uri: encodeURIComponent(DINGTALK_CONF?.OSS_URL),
-        client_id: DINGTALK_CONF?.APP_KEY,
+        redirect_uri: encodeURIComponent(DINGTALK_CONF?.NC_DT_OAUTH_URL),
+        client_id: DINGTALK_CONF?.NC_DT_APP_KEY,
         scope: 'openid',
         response_type: 'code',
         state: 'nc',
@@ -126,7 +128,7 @@ onMounted(() => {
     >
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl) signin-panel"
-        :class="{ 'with-dingtalk': !!DINGTALK_CONF?.APP_KEY }"
+        :class="{ 'with-dingtalk': !!DINGTALK_CONF?.NC_DT_APP_KEY }"
       >
         <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
@@ -140,7 +142,7 @@ onMounted(() => {
           </div>
         </Transition>
         <div class="flex flex-row items-center justify-center gap-2">
-          <div v-if="DINGTALK_CONF?.APP_KEY">
+          <div v-if="DINGTALK_CONF?.NC_DT_APP_KEY">
             <div class="text-center prose-sm">使用钉钉扫码登录</div>
             <div id="dingtalk_sso" class="dingtalk-sso"></div>
           </div>

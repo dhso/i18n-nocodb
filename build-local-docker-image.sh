@@ -23,6 +23,11 @@ function build_gui(){
     export NODE_OPTIONS="--max_old_space_size=16384"
     # generate static build of nc-gui
     cd ${SCRIPT_DIR}/packages/nc-gui 
+    export NUXT_NC_DT_AGENT_ID={{NC_DT_AGENT_ID}}
+    export NUXT_NC_DT_APP_KEY={{NC_DT_APP_KEY}}
+    export NUXT_NC_DT_APP_SECRET={{NC_DT_APP_SECRET}}
+    export NUXT_NC_DT_OAUTH_URL={{NC_DT_OAUTH_URL}}
+
     npm ci || ERROR="gui build failed"
     npm run generate || ERROR="gui build failed"
 }
