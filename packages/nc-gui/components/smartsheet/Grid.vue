@@ -3,7 +3,7 @@
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { fetchTranslation } from '../useGptClient'
+import { useStorage } from '@vueuse/core'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -26,6 +26,7 @@ import {
   createEventHook,
   enumColor,
   extractPkFromRow,
+  fetchTranslation,
   iconMap,
   inject,
   isColumnRequiredAndNull,
@@ -134,6 +135,7 @@ const {
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
+  selectedRecords,
   removeRowIfNew,
   navigateToSiblingRow,
   getExpandedRowIndex,
@@ -212,7 +214,6 @@ const {
   handleCellClick,
   clearSelectedRange,
   copyValue,
-  translateValue,
   isCellActive,
   resetSelectedRange,
   makeActive,
@@ -485,6 +486,7 @@ const onXcResizing = (cn: string, event: any) => {
 
 defineExpose({
   loadData,
+  translateSelectedRows,
   openColumnCreate: (data) => {
     tableHeadEl.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
     setTimeout(() => {
@@ -596,100 +598,101 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   }
 }
 
+async function loadTranslationConfig(sourceText: string | array, fromLang: string, toLang: string | string[]) {
+  const storage = useStorage('openaiConfig')
+  const isSimpleText = typeof sourceText === 'string'
+  const {
+    openaiApiKey: token,
+    currentModel: engine,
+    prompt = getTranslatePrompt(fromLang, toLang, isSimpleText),
+    tempretureParam,
+    queryText = isSimpleText ? sourceText : JSON.stringify(sourceText),
+  } = storage?.value ? JSON.parse(storage.value) : {}
+  return await fetchTranslation({
+    token,
+    engine,
+    prompt,
+    tempretureParam,
+    queryText,
+  })
+}
 /**
- * @description Translate cell value to fill autocomplete field
+ * @description Translate current row to fill autocomplete field
  * @param ctx
- * @param skipUpdate
  */
-async function translateCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
+async function translateSingleRow(ctx: { row: number; col: number } | null) {
   if (
     !ctx ||
     !hasEditPermission ||
     (fields.value[ctx.col].uidt !== UITypes.LinkToAnotherRecord && isVirtualCol(fields.value[ctx.col]))
   )
     return
+  try {
+    const state = useStorage('translateSetting').value
+    const sourceLang = state ? JSON.parse(state)?.translateSourceType : 'CN'
+    const rowObj = data.value[ctx.row]
+    const definedLangArr = Object.keys(LANGUAGES).filter((lang) => lang !== sourceLang)
+    const toLangArr = state ? JSON.parse(state)?.translateType : definedLangArr
 
-  const rowObj = data.value[ctx.row]
-  const columnObj = fields.value[ctx.col]
-  const sourceText = rowObj.row.CN
-  // 获取翻译源字段：默认为当前行的【CN】字段
-  const translatedValue = sourceText
-
-  if (isVirtualCol(columnObj)) {
-    addUndo({
-      undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
-          if (paginationData.value.pageSize === pg.pageSize) {
-            if (paginationData.value.page !== pg.page) {
-              await changePage(pg.page!)
-            }
-            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-            const rowObj = data.value[ctx.row]
-            const columnObj = fields.value[ctx.col]
-            if (
-              columnObj.title &&
-              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-              columnObj.id === col.id
-            ) {
-              rowObj.row[columnObj.title] = row.row[columnObj.title]
-              await rowRefs[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
-              await rowRefs[ctx.row]!.syncLTARRefs(rowObj.row)
-              activeCell.col = ctx.col
-              activeCell.row = ctx.row
-              scrollToCell?.()
-            } else {
-              throw new Error('Record could not be found')
-            }
-          } else {
-            throw new Error('Page size changed')
-          }
-        },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
-      },
-      redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
-          if (paginationData.value.pageSize === pg.pageSize) {
-            if (paginationData.value.page !== pg.page) {
-              await changePage(pg.page!)
-            }
-            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-            const rowObj = data.value[ctx.row]
-            const columnObj = fields.value[ctx.col]
-            if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
-              await rowRefs[ctx.row]!.clearLTARCell(columnObj)
-              activeCell.col = ctx.col
-              activeCell.row = ctx.row
-              scrollToCell?.()
-            } else {
-              throw new Error('Record could not be found')
-            }
-          } else {
-            throw new Error('Page size changed')
-          }
-        },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
-      },
-      scope: defineViewScope({ view: view.value }),
+    const sourceText = rowObj.row[sourceLang]
+    isLoading.value = true
+    const _translate = await loadTranslationConfig(sourceText, sourceLang, toLangArr)
+    const transitionTargets = JSON.parse(_translate)
+    Object.keys(transitionTargets).forEach((lang) => {
+      rowObj.row[lang] = transitionTargets[lang]
+      updateOrSaveRow(rowObj, lang)
     })
-    await rowRefs[ctx.row]!.clearLTARCell(columnObj)
-    return
+    isLoading.value = false
+  } catch (e) {
+    console.log(e)
+    isLoading.value = false
+  }
+}
+
+async function translateSelectedRows() {
+  if (!selectedRecords.value?.length) {
+    return message.warn('Please select the rows to be translated')
   }
 
-  // handle Checkbox and rating fields in a special way
-  switch (columnObj.uidt) {
-    case UITypes.Checkbox:
-      rowObj.row[columnObj.title] = false
-      break
-    case UITypes.Rating:
-      rowObj.row[columnObj.title] = 0
-      break
-    default:
-      rowObj.row[columnObj.title] = translatedValue
-      break
-  }
+  try {
+    const state = useStorage('translateSetting').value
+    const sourceLang = state ? JSON.parse(state)?.translateSourceType : 'CN'
+    const sourceTextArr = selectedRecords.value.map((row) => {
+      return {
+        id: row.row.Id,
+        [sourceLang]: row.row[sourceLang],
+      }
+    })
+    const definedLangArr = Object.keys(LANGUAGES).filter((lang) => lang !== sourceLang)
+    const toLangArr = state ? JSON.parse(state)?.translateType : definedLangArr
+    const rows = selectedRecords.value
+    const cols = fields.value.filter((col) => toLangArr.includes(col.title))
+    const props = []
+    const translatedArr = []
+    isLoading.value = true
+    // 方案1：批量按行翻译
+    for (const row of sourceTextArr) {
+      const _translate = await loadTranslationConfig(row[sourceLang], sourceLang, toLangArr)
+      translatedArr.push(JSON.parse(_translate))
+    }
+    console.log(translatedArr, 'translatedArr')
+    // 方案2： 提供数据结构，一次性翻译（用prompt试验下来，效果不甚理想！！！）
+    // const translateData = await loadTranslationConfig(sourceTextArr, sourceLang, toLangArr)
+    // console.log(translateData, 'translateData')
 
-  if (!skipUpdate) {
-    await updateOrSaveRow(rowObj, columnObj.title)
+    rows.forEach((row, index) => {
+      cols.forEach((col) => {
+        row.row[col.title] = translatedArr[index][col.title]
+        props.push(col.title)
+      })
+    })
+    console.log(rows, cols, props, 'clearSelectedRangeOfCells')
+    // TODO： 这里是不是可以直接调用接口不需要额外再调用bulkUpdateRows处理逻辑？？？
+    await bulkUpdateRows(rows, props)
+    reloadViewDataHook.trigger()
+    isLoading.value = false
+  } catch (error) {
+    isLoading.value = false
   }
 }
 
@@ -719,7 +722,6 @@ async function clearSelectedRangeOfCells() {
       props.push(col.title)
     }
   }
-
   await bulkUpdateRows(rows, props)
 }
 
@@ -1402,10 +1404,12 @@ useEventListener(document, 'mouseup', () => {
                 contextMenuTarget &&
                 selectedRange.isSingleCell() &&
                 (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
-                  !isVirtualCol(fields[contextMenuTarget.col]))
+                  !isVirtualCol(fields[contextMenuTarget.col])) &&
+                fields[contextMenuTarget.col].title === 'CN' &&
+                data[contextMenuTarget.row].row.CN
               "
               data-testid="context-menu-item-translate"
-              @click="translateCell(contextMenuTarget)"
+              @click="translateSingleRow(contextMenuTarget)"
             >
               <div v-e="['a:row:translate']" class="nc-project-menu-item">{{ $t('Translate') }}</div>
             </a-menu-item>

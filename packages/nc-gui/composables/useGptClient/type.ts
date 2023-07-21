@@ -48,12 +48,3 @@ export const OPENAI_MODELS_DESCRIPTION: Record<OpenAIModel, string> = {
   'gpt-4-32k-0314': 'GPT-4 32K 0314',
   'gpt-4-32k-0614': 'GPT-4 32K 0614',
 } as const
-
-export const LANGUAGES = {
-  'zh-Hans': '简体中文',
-  'zh-Hant': '繁體中文',
-  'en': 'English',
-  'jp': '日本語',
-} as const
-
-export type Language = keyof typeof LANGUAGES

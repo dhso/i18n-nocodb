@@ -11,10 +11,7 @@ export const fetchTranslation = async (params: {
 }) => {
   const { token, engine, prompt, queryText, tempretureParam } = params
   if (!token) {
-    throw new Error('No API Key found!')
-  }
-  if (!prompt) {
-    throw new Error('No prompt found!')
+    return message.error('No Openai API Key found!')
   }
 
   const getRadomNumber = (min: number, max: number) => {

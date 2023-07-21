@@ -129,12 +129,18 @@ const onDrop = async (event: DragEvent) => {
     console.log('error', e)
   }
 }
+
+const transitionTargets = () => {
+  if (isGrid) {
+    return grid.value?.translateSelectedRows()
+  }
+}
 </script>
 
 <template>
   <div class="nc-container flex h-full" @drop="onDrop" @dragover.prevent>
     <div class="flex flex-col h-full flex-1 min-w-0">
-      <LazySmartsheetToolbar />
+      <LazySmartsheetToolbar @getTranslateRows="transitionTargets" />
 
       <Transition name="layout" mode="out-in">
         <template v-if="meta">

@@ -1,5 +1,6 @@
 export default {
-  baseUrl: 'https://api.openai.com',
+  // baseUrl: 'https://api.openai.com',
+  baseUrl: 'https://askme-api.minws.com/imitate/',
   endpoints: {
     v1: {
       completions: {

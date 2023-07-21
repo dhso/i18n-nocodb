@@ -243,7 +243,7 @@ export function useMultiSelect(
         if (cpRow != null && cpCol != null) {
           const rowObj = unref(data)[cpRow]
           const columnObj = unref(fields)[cpCol]
-
+          console.log('rowObj', rowObj, columnObj, 'columnObj')
           const textToCopy = valueToCopy(rowObj, columnObj)
           await copy(textToCopy)
           message.success(t('msg.info.copiedToClipboard'))
