@@ -36,13 +36,12 @@ export const getTranslatePrompt = (fromLang: E_Language = 'CN', toLang: E_Langua
       请将给到的文本翻译成${toLang.map(lang => LANGUAGES[lang]).join('、')}，
       只需要输出一个你认为最精确的翻译结果，
       输出结果以${toLang}作为key的'''json对象'''形式表示，
-      只需要输出'''json'''对象，不需要额外的说明语言，
-      输出格式如下：
+      输出的格式样例如下：
       '''{
         "TW": "繁體中文",
-        "EN": "英语",
-        "JP": "日本語"
       }'''
+      TW表示的就是${fromLang}字段翻译成繁体中文的内容。
+      只需要输出'''json'''对象，不需要额外的说明语言。
     `
   }
   return `
