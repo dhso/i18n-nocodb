@@ -14,14 +14,16 @@ client.interceptors.response.use(
     return res
   },
   (err) => {
-    const { response } = err
+    console.log('err', err)
+    const { response, message: msg } = err
     if (response) {
       const { status, data } = response
       if (status === 401) {
         message.error('please check your openai api key')
-      }
-      if (status === 429) {
+      } else if (status === 429) {
         message.error(data?.error?.message || '请求过于频繁，请稍后再试')
+      } else {
+        message.error(msg || '请求失败，请稍后再试')
       }
     }
     Promise.reject(err)
@@ -69,8 +71,8 @@ export async function chatCompletions(
   maxTokens = 1000,
 ) {
   const { url, headers } = endpoints.v1.chat.completions
-  token =
-    'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJkaHNvLmhhZG9uZ0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vYXV0aCI6eyJ1c2VyX2lkIjoidXNlci13N1FDMTZLeURPMW5zaU5pNG9OOGNaQlIifSwiaXNzIjoiaHR0cHM6Ly9hdXRoMC5vcGVuYWkuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA4NDA5Nzk0MjcxNDcyOTM4NDg4IiwiYXVkIjpbImh0dHBzOi8vYXBpLm9wZW5haS5jb20vdjEiLCJodHRwczovL29wZW5haS5vcGVuYWkuYXV0aDBhcHAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTY4OTMwNTE3MiwiZXhwIjoxNjkwNTE0NzcyLCJhenAiOiJUZEpJY2JlMTZXb1RIdE45NW55eXdoNUU0eU9vNkl0RyIsInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwgbW9kZWwucmVhZCBtb2RlbC5yZXF1ZXN0IG9yZ2FuaXphdGlvbi5yZWFkIG9yZ2FuaXphdGlvbi53cml0ZSJ9.bDxqmyyKy9G2xI28YZddiO4grS9w_Lgsr76kJ8aJySJ84eACPXKDaNrIjgvhWDd5lpQ5fvzeoWEh1Gu5bQ3FaWNyq3yL3MFxt2SWat2Kn8oJF9MSsTYWZvUaN4kPRXkpYkf4KoFZOEWjpYWf-xPWDsnGN6RnAl_2djrMEtsfpCTtWKqTiFnwEaK7yuzsKnOZyiohPcS__8aVnhnHT4OvtGAUe6f5ZR3JMCEtMMuHExMVRiaKbExEM5m2PJXpxPBM_lps-pKIoBv28yvgeJilYRrJ6Ep21mge9neeVAd7HQBvI2xHk7AnssGNXhhDkjjW0GkibIX9jivnkrkbuWCloA'
+  // token =
+  //   'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1UaEVOVUpHTkVNMVFURTRNMEZCTWpkQ05UZzVNRFUxUlRVd1FVSkRNRU13UmtGRVFrRXpSZyJ9.eyJodHRwczovL2FwaS5vcGVuYWkuY29tL3Byb2ZpbGUiOnsiZW1haWwiOiJkaHNvLmhhZG9uZ0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vYXV0aCI6eyJ1c2VyX2lkIjoidXNlci13N1FDMTZLeURPMW5zaU5pNG9OOGNaQlIifSwiaXNzIjoiaHR0cHM6Ly9hdXRoMC5vcGVuYWkuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA4NDA5Nzk0MjcxNDcyOTM4NDg4IiwiYXVkIjpbImh0dHBzOi8vYXBpLm9wZW5haS5jb20vdjEiLCJodHRwczovL29wZW5haS5vcGVuYWkuYXV0aDBhcHAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTY4OTMwNTE3MiwiZXhwIjoxNjkwNTE0NzcyLCJhenAiOiJUZEpJY2JlMTZXb1RIdE45NW55eXdoNUU0eU9vNkl0RyIsInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwgbW9kZWwucmVhZCBtb2RlbC5yZXF1ZXN0IG9yZ2FuaXphdGlvbi5yZWFkIG9yZ2FuaXphdGlvbi53cml0ZSJ9.bDxqmyyKy9G2xI28YZddiO4grS9w_Lgsr76kJ8aJySJ84eACPXKDaNrIjgvhWDd5lpQ5fvzeoWEh1Gu5bQ3FaWNyq3yL3MFxt2SWat2Kn8oJF9MSsTYWZvUaN4kPRXkpYkf4KoFZOEWjpYWf-xPWDsnGN6RnAl_2djrMEtsfpCTtWKqTiFnwEaK7yuzsKnOZyiohPcS__8aVnhnHT4OvtGAUe6f5ZR3JMCEtMMuHExMVRiaKbExEM5m2PJXpxPBM_lps-pKIoBv28yvgeJilYRrJ6Ep21mge9neeVAd7HQBvI2xHk7AnssGNXhhDkjjW0GkibIX9jivnkrkbuWCloA'
   const config = {
     headers: {
       ...headers,

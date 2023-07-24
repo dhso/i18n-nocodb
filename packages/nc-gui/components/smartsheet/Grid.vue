@@ -599,23 +599,15 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 async function loadTranslationConfig(sourceText: string | array, fromLang: string, toLang: string | string[]) {
-  const storage = useStorage('openaiConfig')
   const isSimpleText = typeof sourceText === 'string'
-  const {
-    openaiApiKey: token,
-    currentModel: engine,
-    prompt = getTranslatePrompt(fromLang, toLang, isSimpleText),
-    tempretureParam,
-    queryText = isSimpleText ? sourceText : JSON.stringify(sourceText),
-  } = storage?.value ? JSON.parse(storage.value) : {}
+  const prompt = getTranslatePrompt(fromLang, toLang, isSimpleText)
+  const queryText = isSimpleText ? sourceText : JSON.stringify(sourceText)
   return await fetchTranslation({
-    token,
-    engine,
     prompt,
-    tempretureParam,
     queryText,
   })
 }
+
 /**
  * @description Translate current row to fill autocomplete field
  * @param ctx

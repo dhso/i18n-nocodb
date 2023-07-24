@@ -1,17 +1,28 @@
+// @ts-nocheck
+import { useStorage } from '@vueuse/core'
 import { GPT_MODELS } from './type'
-import type { GPTModel, OpenAIModel } from './type'
+import type { GPTModel } from './type'
 import OpenAIClient from './index'
 
-export const fetchTranslation = async (params: {
-  token: string
-  engine: OpenAIModel
-  prompt: string
-  tempretureParam: number
-  queryText: string
-}) => {
-  const { token, engine, prompt, queryText, tempretureParam } = params
+/**
+ * @description get openai setting from localstorage
+ * @returns { token: string, engine: string, tempretureParam: number }
+ */
+export function getOpenaiSetting() {
+  const storage = useStorage('openaiConfig', null)
+  const { openaiApiKey, openaiApiBaseUrl, currentModel, tempretureParam } =
+    storage && storage?.value ? JSON.parse(storage.value) : ({} as any)
+
+  // reset baseUrl
+  OpenAIClient.setApiBaseUrl(openaiApiBaseUrl || 'https://api.openai.com')
+  return { token: openaiApiKey, engine: currentModel, tempretureParam }
+}
+
+export const fetchTranslation = async (params: { prompt: string; queryText: string }) => {
+  const { token, engine, tempretureParam } = getOpenaiSetting()
+  const { prompt, queryText } = params
   if (!token) {
-    return message.error('No Openai API Key found!')
+    return message.error('No Openai API Key found! Please check your Openai API Key in user setting.')
   }
 
   const getRadomNumber = (min: number, max: number) => {
@@ -33,7 +44,7 @@ export const fetchTranslation = async (params: {
 
   const resp = await OpenAIClient.completions(token, prompt, queryText, engine, tmpParam)
   const text = resp.data.choices
-    .map((choice: any) => choice.text.trim())
+    .map((choice: any) => (choice?.text || choice?.message?.content || '').trim())
     .join('\n')
     .trim()
   return text
