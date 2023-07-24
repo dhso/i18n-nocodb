@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+// @ts-nocheck
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { useStorage } from '@vueuse/core'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -24,6 +26,7 @@ import {
   createEventHook,
   enumColor,
   extractPkFromRow,
+  fetchTranslation,
   iconMap,
   inject,
   isColumnRequiredAndNull,
@@ -132,6 +135,7 @@ const {
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
+  selectedRecords,
   removeRowIfNew,
   navigateToSiblingRow,
   getExpandedRowIndex,
@@ -482,6 +486,7 @@ const onXcResizing = (cn: string, event: any) => {
 
 defineExpose({
   loadData,
+  translateSelectedRows,
   openColumnCreate: (data) => {
     tableHeadEl.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
     setTimeout(() => {
@@ -593,6 +598,96 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   }
 }
 
+async function loadTranslationConfig(sourceText: string | array, fromLang: string, toLang: string | string[]) {
+  const isSimpleText = typeof sourceText === 'string'
+  const prompt = getTranslatePrompt(fromLang, toLang, isSimpleText)
+  const queryText = isSimpleText ? sourceText : JSON.stringify(sourceText)
+  return await fetchTranslation({
+    prompt,
+    queryText,
+  })
+}
+
+/**
+ * @description Translate current row to fill autocomplete field
+ * @param ctx
+ */
+async function translateSingleRow(ctx: { row: number; col: number } | null) {
+  if (
+    !ctx ||
+    !hasEditPermission ||
+    (fields.value[ctx.col].uidt !== UITypes.LinkToAnotherRecord && isVirtualCol(fields.value[ctx.col]))
+  )
+    return
+  try {
+    const state = useStorage('translateSetting').value
+    const sourceLang = state ? JSON.parse(state)?.translateSourceType : 'CN'
+    const rowObj = data.value[ctx.row]
+    const definedLangArr = Object.keys(LANGUAGES).filter((lang) => lang !== sourceLang)
+    const toLangArr = state ? JSON.parse(state)?.translateType : definedLangArr
+
+    const sourceText = rowObj.row[sourceLang]
+    isLoading.value = true
+    const _translate = await loadTranslationConfig(sourceText, sourceLang, toLangArr)
+    const transitionTargets = JSON.parse(_translate)
+    Object.keys(transitionTargets).forEach((lang) => {
+      rowObj.row[lang] = transitionTargets[lang]
+      updateOrSaveRow(rowObj, lang)
+    })
+    isLoading.value = false
+  } catch (e) {
+    console.log(e)
+    isLoading.value = false
+  }
+}
+
+async function translateSelectedRows() {
+  if (!selectedRecords.value?.length) {
+    return message.warn('Please select the rows to be translated')
+  }
+
+  try {
+    const state = useStorage('translateSetting').value
+    const sourceLang = state ? JSON.parse(state)?.translateSourceType : 'CN'
+    const sourceTextArr = selectedRecords.value.map((row) => {
+      return {
+        id: row.row.Id,
+        [sourceLang]: row.row[sourceLang],
+      }
+    })
+    const definedLangArr = Object.keys(LANGUAGES).filter((lang) => lang !== sourceLang)
+    const toLangArr = state ? JSON.parse(state)?.translateType : definedLangArr
+    const rows = selectedRecords.value
+    const cols = fields.value.filter((col) => toLangArr.includes(col.title))
+    const props = []
+    const translatedArr = []
+    isLoading.value = true
+    // 方案1：批量按行翻译
+    for (const row of sourceTextArr) {
+      const _translate = await loadTranslationConfig(row[sourceLang], sourceLang, toLangArr)
+      translatedArr.push(JSON.parse(_translate))
+    }
+    console.log(translatedArr, 'translatedArr')
+    // 方案2： 提供数据结构，一次性翻译（用prompt试验下来，效果不甚理想！！！）
+    // const translateData = await loadTranslationConfig(sourceTextArr, sourceLang, toLangArr)
+    // console.log(translateData, 'translateData')
+
+    rows.forEach((row, index) => {
+      cols.forEach((col) => {
+        row.row[col.title] = translatedArr[index][col.title]
+        props.push(col.title)
+      })
+    })
+    console.log(rows, cols, props, 'clearSelectedRangeOfCells')
+    // TODO： 这里是不是可以直接调用接口不需要额外再调用bulkUpdateRows处理逻辑？？？
+    await bulkUpdateRows(rows, props)
+    reloadViewDataHook.trigger()
+    isLoading.value = false
+  } catch (error) {
+    isLoading.value = false
+  }
+}
+
 async function clearSelectedRangeOfCells() {
   if (!hasEditPermission) return
 
@@ -619,7 +714,6 @@ async function clearSelectedRangeOfCells() {
       props.push(col.title)
     }
   }
-
   await bulkUpdateRows(rows, props)
 }
 
@@ -1222,6 +1316,7 @@ useEventListener(document, 'mouseup', () => {
           />
         </div>
 
+        <!-- Context Menu: 单元格式右键点击 -->
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item
@@ -1263,7 +1358,7 @@ useEventListener(document, 'mouseup', () => {
               </div>
             </a-menu-item>
 
-            <!--            Clear cell -->
+            <!-- Clear cell -->
             <a-menu-item
               v-if="
                 contextMenuTarget &&
@@ -1276,7 +1371,7 @@ useEventListener(document, 'mouseup', () => {
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
-            <!--            Clear cell -->
+            <!-- Clear cell -->
             <a-menu-item v-else-if="contextMenuTarget" @click="clearSelectedRangeOfCells()">
               <div v-e="['a:row:clear-range']" class="nc-project-menu-item">Clear Cells</div>
             </a-menu-item>
@@ -1293,6 +1388,22 @@ useEventListener(document, 'mouseup', () => {
                 <!-- Copy -->
                 {{ $t('general.copy') }}
               </div>
+            </a-menu-item>
+
+            <!-- Translate Auto with ChatGpt -->
+            <a-menu-item
+              v-if="
+                contextMenuTarget &&
+                selectedRange.isSingleCell() &&
+                (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
+                  !isVirtualCol(fields[contextMenuTarget.col])) &&
+                fields[contextMenuTarget.col].title === 'CN' &&
+                data[contextMenuTarget.row].row.CN
+              "
+              data-testid="context-menu-item-translate"
+              @click="translateSingleRow(contextMenuTarget)"
+            >
+              <div v-e="['a:row:translate']" class="nc-project-menu-item">{{ $t('Translate') }}</div>
             </a-menu-item>
           </a-menu>
         </template>

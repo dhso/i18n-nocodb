@@ -243,9 +243,8 @@ export function useMultiSelect(
         if (cpRow != null && cpCol != null) {
           const rowObj = unref(data)[cpRow]
           const columnObj = unref(fields)[cpCol]
-
+          console.log('rowObj', rowObj, columnObj, 'columnObj')
           const textToCopy = valueToCopy(rowObj, columnObj)
-
           await copy(textToCopy)
           message.success(t('msg.info.copiedToClipboard'))
         }
@@ -253,6 +252,15 @@ export function useMultiSelect(
     } catch {
       message.error(t('msg.error.copyToClipboardError'))
     }
+  }
+
+  /**
+   * 1. get the selected cell value
+   * 2. translate the value
+   * 3. fill the value to the selected range
+   */
+  function translateValue(cellValue?: Cell) {
+    return cellValue
   }
 
   function isCellSelected(row: number, col: number) {
@@ -919,6 +927,7 @@ export function useMultiSelect(
     handleMouseOver,
     clearSelectedRange,
     copyValue,
+    translateValue,
     isCellSelected,
     activeCell,
     handleCellClick,

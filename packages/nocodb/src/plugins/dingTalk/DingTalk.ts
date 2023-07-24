@@ -1,6 +1,6 @@
+import crypto from 'crypto';
 import axios from 'axios';
 import type { IWebhookNotificationAdapter } from 'nc-plugin';
-import crypto from 'crypto';
 
 export default class DingTalk implements IWebhookNotificationAdapter {
   public init(): Promise<any> {
@@ -9,27 +9,30 @@ export default class DingTalk implements IWebhookNotificationAdapter {
 
   static sign(secret) {
     const timestamp = Date.now();
-    const hmac = crypto.createHmac("sha256", secret);
+    const hmac = crypto.createHmac('sha256', secret);
     hmac.update(`${timestamp}\n${secret}`);
-    const sign = encodeURIComponent(hmac.digest("base64"));
+    const sign = encodeURIComponent(hmac.digest('base64'));
     return {
       timestamp,
       sign,
-    }
+    };
   }
 
   public async sendMessage(text: string, payload: any): Promise<any> {
     for (const { webhook_url, secret } of payload?.channels) {
       try {
-        return await axios.post(webhook_url, {
-          msgtype: 'text',
-          text: {
-            content: text,
+        return await axios.post(
+          webhook_url,
+          {
+            msgtype: 'text',
+            text: {
+              content: text,
+            },
           },
-        },
-        {
-          params: DingTalk.sign(secret),
-        });
+          {
+            params: DingTalk.sign(secret),
+          },
+        );
       } catch (e) {
         console.log(e);
         throw e;

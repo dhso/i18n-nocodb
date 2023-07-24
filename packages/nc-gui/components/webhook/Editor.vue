@@ -656,7 +656,7 @@ onMounted(async () => {
               </a-form-item>
             </a-col>
 
-            <a-col :span="24" v-if="['URL'].includes(hook.notification.type)">
+            <a-col v-if="['URL'].includes(hook.notification.type)" :span="24">
               <a-tabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="shadow-sm">
                 <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
                   <LazyMonacoEditor

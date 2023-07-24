@@ -117,6 +117,10 @@ export function useViewData(
     },
   })
 
+  const selectedRecords = computed(() => {
+    return (!!formattedData.value.length && formattedData.value.filter((row: Row) => row.rowMeta.selected)) || []
+  })
+
   const queryParams = computed(() => ({
     offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
     limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
@@ -1011,6 +1015,7 @@ export function useViewData(
     updateOrSaveRow,
     bulkUpdateRows,
     bulkUpdateView,
+    selectedRecords,
     selectedAllRecords,
     syncCount,
     syncPagination,

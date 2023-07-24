@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { IsPublicInj, inject, ref, useSharedView, useSidebar, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
 
+const emit = defineEmits(['getTranslateRows'])
+
 const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -33,6 +35,8 @@ const { allowCSVDownload } = useSharedView()
     <LazySmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
 
     <LazySmartsheetToolbarMappedBy v-if="isMap" />
+
+    <LazySmartsheetToolbarGptTranslation v-if="isGrid" @translateRows="emit('getTranslateRows')" />
 
     <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
