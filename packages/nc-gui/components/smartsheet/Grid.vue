@@ -649,15 +649,17 @@ async function translateSelectedRows() {
   try {
     const state = useStorage('translateSetting').value
     const sourceLang = state ? JSON.parse(state)?.translateSourceType : 'CN'
-    const sourceTextArr = selectedRecords.value.map((row) => {
-      return {
-        id: row.row.Id,
-        [sourceLang]: row.row[sourceLang],
-      }
-    })
+    const sourceTextArr = selectedRecords.value
+      .map((row) => {
+        return {
+          id: row.row.Id,
+          [sourceLang]: row.row[sourceLang],
+        }
+      })
+      .filter((row) => row[sourceLang])
     const definedLangArr = Object.keys(LANGUAGES).filter((lang) => lang !== sourceLang)
     const toLangArr = state ? JSON.parse(state)?.translateType : definedLangArr
-    const rows = selectedRecords.value
+    const rows = selectedRecords.value.filter((row) => row.row[sourceLang])
     const cols = fields.value.filter((col) => toLangArr.includes(col.title))
     const props = []
     const translatedArr = []
