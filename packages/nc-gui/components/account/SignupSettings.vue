@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
 import { useStorage } from '@vueuse/core'
-import { extractSdkResponseErrorMsg, useApi } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, useApi, useUIPermission } from '#imports'
 
 const { api } = useApi()
 
 const { t } = useI18n()
+
+const { isUIAllowed } = useUIPermission()
 
 let settings = $ref<{ invite_only_signup?: boolean }>({ invite_only_signup: false })
 const loadSettings = async () => {
@@ -27,18 +29,24 @@ const saveSettings = async () => {
 
 loadSettings()
 
-const openaiSetting = $ref<{ key: string }>({ key: '', baseUrl: 'https://api.openai.com', model: 'gpt-3.5-turbo' })
+const openaiSetting = $ref<any>({ key: '', baseUrl: 'https://api.openai.com', model: 'gpt-3.5-turbo', prompt: '' })
 const openaiConfig = {
   openaiApiKey: openaiSetting.key,
   openaiApiBaseUrl: openaiSetting.baseUrl,
   currentModel: 'gpt-3.5-turbo',
   tempretureParam: 0.7,
+  prompt: openaiSetting.prompt,
   streamEnabled: false,
 }
 const storage = useStorage('openaiConfig', openaiConfig)
 openaiSetting.key = storage?.value ? storage.value.openaiApiKey : ''
 openaiSetting.baseUrl = storage?.value ? storage.value.openaiApiBaseUrl : 'https://api.openai.com'
 openaiSetting.model = storage?.value ? storage.value.currentModel : 'gpt-3.5-turbo'
+openaiSetting.prompt = storage?.value ? storage.value.prompt : ''
+
+const canOperatePrompt = computed(() => {
+  return isUIAllowed('settings') && localStorage.getItem('can-operate-prompt') === 'true'
+})
 
 function saveOpenapiConfig() {
   if (!openaiSetting.key) {
@@ -54,6 +62,7 @@ function saveOpenapiConfig() {
   storage.value.openaiApiKey = openaiSetting.key
   storage.value.openaiApiBaseUrl = openaiSetting.baseUrl
   storage.value.currentModel = openaiSetting.model
+  storage.value.prompt = openaiSetting.prompt
 
   setTimeout(() => {
     message.success('save successfully!')
@@ -118,6 +127,22 @@ function resetBaseUrl() {
             <a-select-option value="text-davinci-003"></a-select-option>
           </a-select>
         </a-form-item>
+        <span v-if="canOperatePrompt">
+          <div class="label flex justify-between w-[600px] mb-8px">
+            <a-tooltip placement="right">
+              <template #title>
+                <span>建议按照接口默认提示格式进行修改，否则可能导致文案数据无法自动更新！！！</span>
+              </template>
+              <span class="flex justify-between content-center">
+                <span class="mr-2">Prompt</span>
+                <component :is="iconMap.warning" />
+              </span>
+            </a-tooltip>
+          </div>
+          <a-form-item class="w-[600px]">
+            <a-textarea v-model:value="openaiSetting.prompt" placeholder="adjust your prompt" :auto-size="{ minRows: 2 }" />
+          </a-form-item>
+        </span>
         <div class="text-left">
           <a-button class="!rounded-md !h-[2.5rem] mt-6" type="primary" html-type="submit" @click="saveOpenapiConfig">
             Submit

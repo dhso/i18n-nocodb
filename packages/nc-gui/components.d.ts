@@ -79,6 +79,7 @@ declare module '@vue/runtime-core' {
     ClarityColorPickerSolid: typeof import('~icons/clarity/color-picker-solid')['default']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']
+    IconMap: typeof import('~icons/ic/on-map')['default']
     IcOutlineInsertDriveFile: typeof import('~icons/ic/outline-insert-drive-file')['default']
     IcRoundEdit: typeof import('~icons/ic/round-edit')['default']
     IcRoundKeyboardArrowDown: typeof import('~icons/ic/round-keyboard-arrow-down')['default']
