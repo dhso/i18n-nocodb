@@ -4,10 +4,12 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   definePageMeta,
   navigateTo,
+  onMounted,
   reactive,
   ref,
   useApi,
   useGlobal,
+  useHead,
   useI18n,
   useNuxtApp,
   useRoute,
@@ -16,6 +18,16 @@ import {
 
 definePageMeta({
   requiresAuth: false,
+})
+
+useHead({
+  script: [
+    {
+      type: 'text/javascript',
+      src: 'https://g.alicdn.com/dingding/h5-dingtalk-login/0.21.0/ddlogin.js',
+      body: false,
+    },
+  ],
 })
 
 const { $e } = useNuxtApp()
@@ -89,13 +101,50 @@ async function signUp() {
 function resetError() {
   if (error.value) error.value = null
 }
+
+const config = useRuntimeConfig()
+const DINGTALK_CONF = config.public.DINGTALK_CONF || {}
+
+onMounted(() => {
+  DINGTALK_CONF?.NC_DT_APP_KEY &&
+    window.DTFrameLogin(
+      {
+        id: 'dingtalk_sso',
+        width: 300,
+        height: 300,
+      },
+      {
+        redirect_uri: encodeURIComponent(DINGTALK_CONF?.NC_DT_OAUTH_URL),
+        client_id: DINGTALK_CONF?.NC_DT_APP_KEY,
+        scope: 'openid',
+        response_type: 'code',
+        state: 'nc',
+        prompt: 'consent',
+      },
+      (loginResult: { redirectUrl: any; authCode: any; state: any }) => {
+        const { redirectUrl, authCode, state } = loginResult
+        // 这里可以直接进行重定向
+        // window.location.href = redirectUrl
+        // 也可以在不跳转页面的情况下，使用code进行授权
+        api.auth.dingtalkGenTokenByCode({ authCode }).then(async (res) => {
+          signIn(res.token!)
+          await navigateTo('/')
+        })
+      },
+      (errorMsg: any) => {
+        // 这里一般需要展示登录失败的具体原因
+        alert(`Login Error: ${errorMsg}`)
+      },
+    )
+})
 </script>
 
 <template>
   <NuxtLayout>
     <div class="md:bg-primary bg-opacity-5 signup h-full min-h-[600px] flex flex-col justify-center items-center">
       <div
-        class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+        class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl) signin-panel"
+        :class="{ 'with-dingtalk': !!DINGTALK_CONF?.NC_DT_APP_KEY }"
       >
         <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
@@ -108,72 +157,77 @@ function resetError() {
         <h2 v-if="appInfo.firstUser" class="prose !text-primary font-semibold self-center">
           {{ $t('msg.info.signUp.superAdmin') }}
         </h2>
+        <div class="flex flex-row items-center justify-center gap-2">
+          <div v-if="DINGTALK_CONF?.NC_DT_APP_KEY">
+            <div class="text-center prose-sm">使用钉钉扫码登录</div>
+            <div id="dingtalk_sso" class="dingtalk-sso"></div>
+          </div>
+          <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
+            <Transition name="layout">
+              <div
+                v-if="error"
+                class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
+                data-testid="nc-signup-error"
+              >
+                <div class="flex items-center gap-2 justify-center">
+                  <MaterialSymbolsWarning />
+                  <div class="break-words">{{ error }}</div>
+                </div>
+              </div>
+            </Transition>
 
-        <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
-          <Transition name="layout">
-            <div
-              v-if="error"
-              class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
-              data-testid="nc-signup-error"
-            >
-              <div class="flex items-center gap-2 justify-center">
-                <MaterialSymbolsWarning />
-                <div class="break-words">{{ error }}</div>
+            <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
+              <a-input v-model:value="form.email" size="large" :placeholder="$t('msg.info.signUp.workEmail')" @focus="resetError" />
+            </a-form-item>
+
+            <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
+              <a-input-password
+                v-model:value="form.password"
+                size="large"
+                class="password"
+                :placeholder="$t('msg.info.signUp.enterPassword')"
+                @focus="resetError"
+              />
+            </a-form-item>
+
+            <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
+              <button class="scaling-btn bg-opacity-100" type="submit">
+                <span class="flex items-center gap-2">
+                  <MaterialSymbolsRocketLaunchOutline />
+
+                  {{ $t('general.signUp') }}
+                </span>
+              </button>
+
+              <a
+                v-if="appInfo.googleAuthEnabled"
+                :href="`${appInfo.ncSiteUrl}/auth/google`"
+                class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+              >
+                <span class="flex items-center gap-2">
+                  <LogosGoogleGmail />
+
+                  {{ $t('labels.signUpWithGoogle') }}
+                </span>
+              </a>
+
+              <div class="flex items-center gap-2">
+                <a-switch
+                  v-model:checked="subscribe"
+                  size="small"
+                  class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
+                />
+                <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
+              </div>
+
+              <div class="text-end prose-sm">
+                {{ $t('msg.info.signUp.alreadyHaveAccount') }}
+
+                <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
               </div>
             </div>
-          </Transition>
-
-          <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-            <a-input v-model:value="form.email" size="large" :placeholder="$t('msg.info.signUp.workEmail')" @focus="resetError" />
-          </a-form-item>
-
-          <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
-            <a-input-password
-              v-model:value="form.password"
-              size="large"
-              class="password"
-              :placeholder="$t('msg.info.signUp.enterPassword')"
-              @focus="resetError"
-            />
-          </a-form-item>
-
-          <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
-            <button class="scaling-btn bg-opacity-100" type="submit">
-              <span class="flex items-center gap-2">
-                <MaterialSymbolsRocketLaunchOutline />
-
-                {{ $t('general.signUp') }}
-              </span>
-            </button>
-
-            <a
-              v-if="appInfo.googleAuthEnabled"
-              :href="`${appInfo.ncSiteUrl}/auth/google`"
-              class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
-            >
-              <span class="flex items-center gap-2">
-                <LogosGoogleGmail />
-
-                {{ $t('labels.signUpWithGoogle') }}
-              </span>
-            </a>
-
-            <div class="flex items-center gap-2">
-              <a-switch
-                v-model:checked="subscribe"
-                size="small"
-                class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
-              />
-              <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
-            </div>
-
-            <div class="text-end prose-sm">
-              {{ $t('msg.info.signUp.alreadyHaveAccount') }}
-
-              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
-            </div>
-          </div>
-        </a-form>
+          </a-form>
+        </div>
       </div>
 
       <div class="prose-sm mt-4 text-gray-500">
@@ -195,6 +249,16 @@ function resetError() {
     input {
       @apply !border-none !m-0;
     }
+  }
+  .signin-panel {
+    max-width: 500px;
+    &.with-dingtalk {
+      max-width: 650px;
+    }
+  }
+  .dingtalk-sso {
+    width: 300px;
+    height: 300px;
   }
 }
 </style>

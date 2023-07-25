@@ -25,7 +25,7 @@ useHead({
     {
       type: 'text/javascript',
       src: 'https://g.alicdn.com/dingding/h5-dingtalk-login/0.21.0/ddlogin.js',
-      body: true,
+      body: false,
     },
   ],
 })
