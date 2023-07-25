@@ -3,7 +3,6 @@
 import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { useStorage } from '@vueuse/core'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -53,6 +52,7 @@ import {
   watch,
 } from '#imports'
 import type { Row } from '~/lib'
+import { E_TranslateType } from '~/utils/prompt'
 
 const { t } = useI18n()
 
@@ -598,9 +598,10 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   }
 }
 
-async function loadTranslationConfig(sourceText: string | array, fromLang: string, toLang: string | string[]) {
+const tranSourceLang = 'Origin'
+async function loadTranslationConfig(sourceText: string | array) {
   const isSimpleText = typeof sourceText === 'string'
-  const prompt = getTranslatePrompt(fromLang, toLang, isSimpleText)
+  const prompt = getTranslatePrompt(isSimpleText)
   const queryText = isSimpleText ? sourceText : JSON.stringify(sourceText)
   return await fetchTranslation({
     prompt,
@@ -620,15 +621,12 @@ async function translateSingleRow(ctx: { row: number; col: number } | null) {
   )
     return
   try {
-    const state = useStorage('translateSetting').value
-    const sourceLang = state ? JSON.parse(state)?.translateSourceType : 'CN'
     const rowObj = data.value[ctx.row]
-    const definedLangArr = Object.keys(LANGUAGES).filter((lang) => lang !== sourceLang)
-    const toLangArr = state ? JSON.parse(state)?.translateType : definedLangArr
-
-    const sourceText = rowObj.row[sourceLang]
+    const sourceText = rowObj.row[tranSourceLang]
     isLoading.value = true
-    const _translate = await loadTranslationConfig(sourceText, sourceLang, toLangArr)
+    console.log(sourceText, 'sourceText')
+    const _translate = await loadTranslationConfig(sourceText)
+    console.log(_translate, '_translate')
     const transitionTargets = JSON.parse(_translate)
     Object.keys(transitionTargets).forEach((lang) => {
       rowObj.row[lang] = transitionTargets[lang]
@@ -642,37 +640,41 @@ async function translateSingleRow(ctx: { row: number; col: number } | null) {
 }
 
 async function translateSelectedRows() {
-  if (!selectedRecords.value?.length) {
-    return message.warn('Please select the rows to be translated')
-  }
-
   try {
-    const state = useStorage('translateSetting').value
-    const sourceLang = state ? JSON.parse(state)?.translateSourceType : 'CN'
-    const sourceTextArr = selectedRecords.value
+    const sourceSelectedRows = selectedRecords.value.length ? selectedRecords.value : data.value
+    const sourceTextArr = sourceSelectedRows
       .map((row) => {
         return {
           id: row.row.Id,
-          [sourceLang]: row.row[sourceLang],
+          [tranSourceLang]: row.row[tranSourceLang],
         }
       })
-      .filter((row) => row[sourceLang])
-    const definedLangArr = Object.keys(LANGUAGES).filter((lang) => lang !== sourceLang)
-    const toLangArr = state ? JSON.parse(state)?.translateType : definedLangArr
-    const rows = selectedRecords.value.filter((row) => row.row[sourceLang])
+      .filter((row) => row[tranSourceLang])
+    console.log(sourceTextArr, 'sourceTextArr')
+    const toLangArr = Object.keys(LANGUAGES)
+    let translatedArr = []
+
+    const rows = sourceSelectedRows.filter((row) => row.row[tranSourceLang])
     const cols = fields.value.filter((col) => toLangArr.includes(col.title))
     const props = []
-    const translatedArr = []
+
+    const translateModel = localStorage.getItem('translate-model') || E_TranslateType.BATCH
+    console.log(translateModel, 'translateModel')
+
     isLoading.value = true
-    // 方案1：批量按行翻译
-    for (const row of sourceTextArr) {
-      const _translate = await loadTranslationConfig(row[sourceLang], sourceLang, toLangArr)
-      translatedArr.push(JSON.parse(_translate))
+
+    if (translateModel === E_TranslateType.SINGLE) {
+      // 方案1：批量按行翻译
+      for (const row of sourceTextArr) {
+        const _translate = await loadTranslationConfig(row[tranSourceLang])
+        translatedArr.push(JSON.parse(_translate))
+      }
+    } else {
+      // 方案2： 提供数据结构，一次性翻译
+      const translateData = await loadTranslationConfig(sourceTextArr)
+      translatedArr = JSON.parse(translateData)
     }
     console.log(translatedArr, 'translatedArr')
-    // 方案2： 提供数据结构，一次性翻译（用prompt试验下来，效果不甚理想！！！）
-    // const translateData = await loadTranslationConfig(sourceTextArr, sourceLang, toLangArr)
-    // console.log(translateData, 'translateData')
 
     rows.forEach((row, index) => {
       cols.forEach((col) => {
@@ -681,8 +683,9 @@ async function translateSelectedRows() {
       })
     })
     console.log(rows, cols, props, 'clearSelectedRangeOfCells')
-    // TODO： 这里是不是可以直接调用接口不需要额外再调用bulkUpdateRows处理逻辑？？？
+
     await bulkUpdateRows(rows, props)
+
     reloadViewDataHook.trigger()
     isLoading.value = false
   } catch (error) {
@@ -1399,13 +1402,13 @@ useEventListener(document, 'mouseup', () => {
                 selectedRange.isSingleCell() &&
                 (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
                   !isVirtualCol(fields[contextMenuTarget.col])) &&
-                fields[contextMenuTarget.col].title === 'CN' &&
-                data[contextMenuTarget.row].row.CN
+                fields[contextMenuTarget.col].title === 'Origin' &&
+                data[contextMenuTarget.row].row.Origin
               "
               data-testid="context-menu-item-translate"
               @click="translateSingleRow(contextMenuTarget)"
             >
-              <div v-e="['a:row:translate']" class="nc-project-menu-item">{{ $t('Translate') }}</div>
+              <div v-e="['a:row:translate']" class="nc-project-menu-item">{{ $t('Gpt Translation') }}</div>
             </a-menu-item>
           </a-menu>
         </template>

@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { debounce } from 'lodash-es'
-import { useStorage } from '@vueuse/core'
-import { ActiveViewInj, MetaInj, iconMap, inject, onMounted, ref, useSmartsheetStoreOrThrow, useViewData } from '#imports'
+import { ActiveViewInj, MetaInj, iconMap, inject, ref, useSmartsheetStoreOrThrow, useViewData } from '#imports'
 
 const emit = defineEmits(['translateRows'])
-
-const open = ref(false)
 
 const meta = inject(MetaInj, ref())
 
@@ -15,43 +12,43 @@ const { xWhere } = useSmartsheetStoreOrThrow()
 
 const { isLoading } = useViewData(meta, view, xWhere)
 
-const checkedList = ref([])
-const plainOptions = ref(['CN', 'EN', 'TW', 'JP'])
-const radioValue = ref('CN')
-
-const disabledChange = computed(() => {
-  return checkedList.value?.length < 1
-})
-
 const debounceTranslate = debounce(() => emit('translateRows'), 300)
 
-const translateSetting = {
-  translateType: ['EN', 'TW', 'JP'],
-  translateSourceType: 'CN',
-}
-const storage = useStorage('translateSetting', translateSetting)
-const onTranslateTypeChange = () => {
-  if (disabledChange.value) {
-    return (checkedList.value = storage.value.translateType)
-  }
-  storage.value.translateType = checkedList.value
-}
-const onSourceTypeChange = () => {
-  storage.value.translateSourceType = radioValue.value
-}
+// const open = ref(false)
+// const checkedList = ref([])
+// const plainOptions = ref(['CN', 'EN', 'TW', 'JP'])
+// const radioValue = ref('CN')
 
-onMounted(() => {
-  checkedList.value = storage.value.translateType
-  radioValue.value = storage.value.translateSourceType
-})
+// const disabledChange = computed(() => {
+//   return checkedList.value?.length < 1
+// })
+
+// const translateSetting = {
+//   translateType: ['EN', 'TW', 'JP'],
+//   translateSourceType: 'CN',
+// }
+// const storage = useStorage('translateSetting', translateSetting)
+// const onTranslateTypeChange = () => {
+//   if (disabledChange.value) {
+//     return (checkedList.value = storage.value.translateType)
+//   }
+//   storage.value.translateType = checkedList.value
+// }
+// const onSourceTypeChange = () => {
+//   storage.value.translateSourceType = radioValue.value
+// }
+// onMounted(() => {
+//   checkedList.value = storage.value.translateType
+//   radioValue.value = storage.value.translateSourceType
+// })
 </script>
 
 <template>
   <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLoading" @click="debounceTranslate">
     <div class="flex items-center gap-1">
       <component :is="iconMap.translate" />
-      <span class="text-capitalize !text-xs font-weight-normal">{{ $t('ChatGpt Translation') }}</span>
-      <a-dropdown
+      <span class="text-capitalize !text-xs font-weight-normal">{{ $t('Gpt Translation') }}</span>
+      <!-- <a-dropdown
         v-model:visible="open"
         offset-y
         placement="bottomRight"
@@ -78,7 +75,7 @@ onMounted(() => {
             <a-checkbox-group v-model:value="checkedList" :options="plainOptions" @change="onTranslateTypeChange" />
           </div>
         </template>
-      </a-dropdown>
+      </a-dropdown> -->
     </div>
   </a-button>
 </template>
