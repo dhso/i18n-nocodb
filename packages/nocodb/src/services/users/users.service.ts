@@ -622,7 +622,7 @@ export class UsersService {
       user = await User.getByEmail(_user.email);
       console.log('user =>', user);
       return {
-        token: genJwt(_user, Noco.getConfig()),
+        token: genJwt(user, Noco.getConfig()),
       };
     } catch (err) {
       NcError.badRequest(err.message);

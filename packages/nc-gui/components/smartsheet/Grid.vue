@@ -1408,7 +1408,7 @@ useEventListener(document, 'mouseup', () => {
               data-testid="context-menu-item-translate"
               @click="translateSingleRow(contextMenuTarget)"
             >
-              <div v-e="['a:row:translate']" class="nc-project-menu-item">{{ $t('Gpt Translation') }}</div>
+              <div v-e="['a:row:translate']" class="nc-project-menu-item">{{ $t('GPT Translation') }}</div>
             </a-menu-item>
           </a-menu>
         </template>

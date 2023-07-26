@@ -9,7 +9,6 @@ import OvhCloudPluginConfig from '../plugins/ovhCloud';
 import S3PluginConfig from '../plugins/s3';
 import ScalewayPluginConfig from '../plugins/scaleway';
 import SlackPluginConfig from '../plugins/slack';
-import DingTalkPluginConfig from '../plugins/dingTalk';
 import SMTPPluginConfig from '../plugins/smtp';
 import MailerSendConfig from '../plugins/mailerSend';
 import SpacesPluginConfig from '../plugins/spaces';
@@ -19,6 +18,8 @@ import TwilioWhatsappPluginConfig from '../plugins/twilioWhatsapp';
 import UpcloudPluginConfig from '../plugins/upcloud';
 import VultrPluginConfig from '../plugins/vultr';
 import SESPluginConfig from '../plugins/ses';
+import DingTalkPluginConfig from '../plugins/dingTalk';
+import OpenAIPluginConfig from '../plugins/openAI';
 import Noco from '../Noco';
 import Local from '../plugins/storage/Local';
 import { MetaTable } from '../utils/globals';
@@ -36,7 +37,6 @@ import type {
 
 const defaultPlugins = [
   SlackPluginConfig,
-  DingTalkPluginConfig,
   TeamsPluginConfig,
   DiscordPluginConfig,
   TwilioWhatsappPluginConfig,
@@ -55,6 +55,8 @@ const defaultPlugins = [
   MailerSendConfig,
   ScalewayPluginConfig,
   SESPluginConfig,
+  DingTalkPluginConfig,
+  OpenAIPluginConfig,
 ];
 
 class NcPluginMgrv2 {
@@ -236,6 +238,25 @@ class NcPluginMgrv2 {
     //   }
     //   return obj;
     // }, {});
+  }
+
+  public static async configAdapter(title, ncMeta = Noco.ncMeta): Promise<any> {
+    const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
+      title,
+    });
+    if (!pluginData) return new Local();
+
+    const pluginConfig = defaultPlugins.find(
+      (c) => c.title === pluginData.title,
+    );
+    const plugin = new pluginConfig.builder(ncMeta, pluginData);
+
+    if (pluginData?.input) {
+      pluginData.input = JSON.parse(pluginData.input);
+    }
+
+    await plugin.init(pluginData?.input);
+    return plugin.getAdapter();
   }
 
   public static async test(args): Promise<boolean> {

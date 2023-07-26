@@ -4,6 +4,8 @@ import { GPT_MODELS } from './type'
 import type { GPTModel } from './type'
 import OpenAIClient from './index'
 
+const { appInfo } = useGlobal()
+
 /**
  * @description get openai setting from localstorage
  * @returns { token: string, engine: string, tempretureParam: number }
@@ -14,8 +16,12 @@ export function getOpenaiSetting() {
     storage && storage?.value ? JSON.parse(storage.value) : ({} as any)
 
   // reset baseUrl
-  OpenAIClient.setApiBaseUrl(openaiApiBaseUrl || 'https://api.openai.com')
-  return { token: openaiApiKey, engine: currentModel, tempretureParam }
+  OpenAIClient.setApiBaseUrl(openaiApiBaseUrl || appInfo.value?.openAI?.gpt_base_url || 'https://api.openai.com')
+  return {
+    token: openaiApiKey || appInfo.value?.openAI?.gpt_token,
+    engine: currentModel || appInfo.value?.openAI?.gpt_model,
+    tempretureParam,
+  }
 }
 
 export const fetchTranslation = async (params: { prompt: string; queryText: string }) => {

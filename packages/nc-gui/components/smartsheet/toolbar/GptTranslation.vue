@@ -47,7 +47,7 @@ const debounceTranslate = debounce(() => emit('translateRows'), 300)
   <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLoading" @click="debounceTranslate">
     <div class="flex items-center gap-1">
       <component :is="iconMap.translate" />
-      <span class="text-capitalize !text-xs font-weight-normal">{{ $t('Gpt Translation') }}</span>
+      <span class="text-capitalize !text-xs font-weight-normal">{{ $t('GPT Translation') }}</span>
       <!-- <a-dropdown
         v-model:visible="open"
         offset-y

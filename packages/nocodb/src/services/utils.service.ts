@@ -11,6 +11,7 @@ import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
 import { jdbcToXcConfig } from '../utils/nc-config/helpers';
 import { packageVersion } from '../utils/packageVersion';
+import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 
 const versionCache = {
   releaseVersion: null,
@@ -350,6 +351,7 @@ export class UtilsService {
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
     const projectHasAdmin = !(await User.isFirst());
+    const openAIConfigs = await NcPluginMgrv2.configAdapter('OpenAI');
     const result = {
       authType: 'jwt',
       projectHasAdmin,
@@ -382,6 +384,7 @@ export class UtilsService {
       ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
       isCloud: process.env.NC_CLOUD === 'true',
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
+      openAI: openAIConfigs.openAIOptions,
     };
 
     return result;

@@ -5,11 +5,11 @@ import { computed, iconMap, useUIPermission } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
-const openaiSetting = $ref<any>({ key: '', baseUrl: 'https://api.openai.com', model: 'gpt-3.5-turbo', prompt: '' })
+const openaiSetting = $ref<any>({ key: '', baseUrl: '', model: '', prompt: '' })
 const openaiConfig = {
   openaiApiKey: openaiSetting.key,
   openaiApiBaseUrl: openaiSetting.baseUrl,
-  currentModel: 'gpt-3.5-turbo',
+  currentModel: '',
   tempretureParam: 0.7,
   prompt: openaiSetting.prompt,
   streamEnabled: false,
@@ -25,15 +25,15 @@ const canOperatePrompt = computed(() => {
 })
 
 function saveOpenapiConfig() {
-  if (!openaiSetting.key) {
-    message.warn('Please input your openai api key')
-    return
-  }
+  // if (!openaiSetting.key) {
+  //   message.warn('Please input your openai api key')
+  //   return
+  // }
 
-  if (!openaiSetting.baseUrl) {
-    message.warn('Please input your openai api url')
-    return
-  }
+  // if (!openaiSetting.baseUrl) {
+  //   message.warn('Please input your openai api url')
+  //   return
+  // }
 
   storage.value.openaiApiKey = openaiSetting.key
   storage.value.openaiApiBaseUrl = openaiSetting.baseUrl
@@ -88,6 +88,7 @@ function resetBaseUrl() {
         <div class="label flex justify-between w-[600px] mb-8px">模型（引擎）</div>
         <a-form-item class="w-[600px]">
           <a-select v-model:value="openaiSetting.model">
+            <a-select-option value="">System built-in</a-select-option>
             <a-select-option value="gpt-3.5-turbo"></a-select-option>
             <a-select-option value="text-davinci-003"></a-select-option>
           </a-select>
