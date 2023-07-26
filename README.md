@@ -328,7 +328,7 @@ docker run -d \
 -p 9527:8080 \
 --restart unless-stopped \
 --log-opt max-size=1m \
-nocodb-local:latest
+dhso/i18n-nocodb:latest
 ```
 
 # Develop

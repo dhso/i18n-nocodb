@@ -18108,7 +18108,7 @@
             "type": "string"
           },
           "roles": {
-            "enum": ["org-level-creator", "org-level-viewer"],
+            "enum": ["org-level-creator", "org-level-viewer", "super", "org-level-creator,super"],
             "type": "string",
             "description": "Roles for the project user"
           }

@@ -1734,7 +1734,11 @@ export interface OrgUserReqType {
   /** @format email */
   email?: string;
   /** Roles for the project user */
-  roles?: 'org-level-creator' | 'org-level-viewer';
+  roles?:
+    | 'org-level-creator'
+    | 'org-level-viewer'
+    | 'super'
+    | 'org-level-creator,super';
 }
 
 /**

@@ -1,8 +1,12 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
-import { Role, extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
+import { computed, Role, extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
 import type { User } from '~/lib'
+
+const { user } = useGlobal()
+
+const currentUserEmail = computed(() => user.value?.email ?? '---')
 
 const { api, isLoading } = useApi()
 
@@ -188,14 +192,21 @@ const copyPasswordResetUrl = async (user: User) => {
         <a-table-column key="roles" :title="$t('objects.role')" data-index="roles">
           <template #default="{ record }">
             <div>
-              <div v-if="record.roles.includes('super')" class="font-weight-bold">Super Admin</div>
               <a-select
-                v-else
                 v-model:value="record.roles"
                 class="w-[220px] nc-user-roles"
                 :dropdown-match-select-width="false"
+                :disabled="record.email === currentUserEmail"
                 @change="updateRole(record.id, record.roles)"
               >
+                <a-select-option
+                  class="nc-users-list-role-option"
+                  :value="`${Role.OrgLevelCreator},${Role.Super}`"
+                  label="Super Admin"
+                >
+                  <div>Super Admin</div>
+                  <span class="text-gray-500 text-xs whitespace-normal">Super admin role can manage everything.</span>
+                </a-select-option>
                 <a-select-option
                   class="nc-users-list-role-option"
                   :value="Role.OrgLevelCreator"

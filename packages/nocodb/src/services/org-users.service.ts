@@ -41,11 +41,11 @@ export class OrgUsersService {
 
     const updateBody = extractProps(param.user, ['roles']);
 
-    const user = await User.get(param.userId);
+    // const user = await User.get(param.userId);
 
-    if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
-      NcError.badRequest('Cannot update super admin roles');
-    }
+    // if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
+    //   NcError.badRequest('Cannot update super admin roles');
+    // }
 
     return await User.update(param.userId, {
       ...updateBody,
