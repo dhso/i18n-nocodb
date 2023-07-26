@@ -71,6 +71,17 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               </div>
             </a-menu-item>
             <a-menu-item
+              key="openai"
+              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+              @click="navigateTo('/account/openai')"
+            >
+              <div class="flex items-center space-x-2">
+                <component :is="iconMap.code" />
+
+                <div class="select-none">Open AI</div>
+              </div>
+            </a-menu-item>
+            <a-menu-item
               v-if="isUIAllowed('appStore') && !appInfo.isCloud"
               key="apps"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
